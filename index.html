@@ -2,19 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Quiz Platform Login</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body {
+    html, body {
+      height: 100%;
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background-color: #f2f8f7;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
     }
+
     .login-wrapper {
       display: flex;
+      flex-direction: row;
       min-height: 100vh;
+      overflow: auto;
     }
+
     .login-left {
       flex: 1;
       background: linear-gradient(to right, #2c3e50, #3498db);
@@ -23,58 +30,78 @@
       align-items: center;
       justify-content: center;
       flex-direction: column;
-      padding: 40px;
+      padding: 40px 20px;
       text-align: center;
     }
+
     .login-left h1 {
-      font-size: 3rem;
+      font-size: 2.8rem;
       margin-bottom: 10px;
     }
+
     .login-left p {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       opacity: 0.85;
     }
+
     .login-right {
       flex: 1;
       background: white;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 40px;
+      padding: 30px 20px;
     }
+
     .login-box {
       width: 100%;
       max-width: 420px;
       background: #ffffff;
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      padding: 30px;
+      padding: 30px 20px;
     }
+
     .form-control {
       border-radius: 10px;
     }
+
     .role-btns .btn {
       width: 48%;
       font-weight: 600;
     }
+
     .role-btns .active-role {
       color: white !important;
     }
+
     .btn-admin.active-role {
       background-color: #0d6efd;
       border-color: #0d6efd;
     }
+
     .btn-student.active-role {
       background-color: #198754;
       border-color: #198754;
     }
+
     @media (max-width: 768px) {
       .login-wrapper {
         flex-direction: column;
       }
+
       .login-left, .login-right {
         width: 100%;
-        padding: 30px;
+        padding: 25px;
+      }
+
+      .login-left h1 {
+        font-size: 2.2rem;
+      }
+
+      .login-box {
+        box-shadow: none;
+        padding: 20px 10px;
       }
     }
   </style>
@@ -136,7 +163,6 @@
     appId: "1:822956185807:web:831411b98aacc662c33fba"
   };
 
-  // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
