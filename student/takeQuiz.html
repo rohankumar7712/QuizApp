@@ -102,96 +102,98 @@
   }
 
   async function loadAllowedQuizzes() {
-    const container = document.getElementById("quizList");
-    container.innerHTML = '';
+  const container = document.getElementById("quizList");
+  container.innerHTML = '';
 
-    const allowanceSnap = await getDoc(doc(db, "quizzesAllownce", studentName));
-    if (!allowanceSnap.exists()) {
-      container.innerHTML = `<p>No quizzes available for you.</p>`;
-      return;
-    }
-
-    const allowanceData = allowanceSnap.data();
-    const allowedQuizzes = Array.isArray(allowanceData.allowed) ? allowanceData.allowed : [];
-
-    if (allowedQuizzes.length === 0) {
-      container.innerHTML = `<p>No quizzes available.</p>`;
-      return;
-    }
-
-    const now = new Date();
-
-    for (const code of allowedQuizzes) {
-      const quizSnap = await getDoc(doc(db, "quizzes", code));
-      if (!quizSnap.exists()) continue;
-
-      const quiz = quizSnap.data();
-      const start = quiz.startAt ? new Date(quiz.startAt) : null;
-      const end = quiz.endAt ? new Date(quiz.endAt) : null;
-
-      let isAvailable = true;
-      let statusText = "Available";
-      let statusClass = "text-success";
-      let disabled = false;
-
-      if (start && now < start) {
-        isAvailable = false;
-        statusText = "Upcoming";
-        statusClass = "text-warning";
-        disabled = true;
-      }
-
-      if (end && now > end) {
-        isAvailable = false;
-        statusText = "Expired";
-        statusClass = "text-danger";
-        disabled = true;
-      }
-
-      const reviewSnap = await getDoc(doc(db, `review_${code}`, studentName));
-      if (reviewSnap.exists()) {
-        isAvailable = false;
-        statusText = "Already Attempted";
-        statusClass = "text-secondary";
-        disabled = true;
-      }
-
-      const totalQuestions = Array.isArray(quiz.questions) ? quiz.questions.length : 0;
-      const totalMarks = totalQuestions * (quiz.markPerQuestion || 1);
-      const timePerQSec = quiz.timePerQuestionSeconds || 30;
-      const timeDuration = totalQuestions * timePerQSec;
-
-      const formatDate = (date) => date.toLocaleString(undefined, {
-        dateStyle: "medium",
-        timeStyle: "short"
-      });
-
-      const card = document.createElement("div");
-      card.className = "col-lg-4 col-md-6 col-sm-12";
-
-      card.innerHTML = `
-        <div class="card shadow-sm h-100 border-0">
-          <div class="card-body d-flex flex-column">
-            <h5 class="card-title">${quiz.title}</h5>
-            ${quiz.description ? `<p class="card-text small">${quiz.description}</p>` : ""}
-            <ul class="list-unstyled small mb-3">
-              ${start ? `<li><strong>Start:</strong> ${formatDate(start)}</li>` : ""}
-              ${end ? `<li><strong>End:</strong> ${formatDate(end)}</li>` : ""}
-              <li><strong>Total Questions:</strong> ${totalQuestions}</li>
-              <li><strong>Total Marks:</strong> ${totalMarks}</li>
-              <li><strong>Time Duration:</strong> ${Math.floor(timeDuration / 60)} min ${timeDuration % 60} sec</li>
-              <li class="${statusClass}"><strong>Status:</strong> ${statusText}</li>
-            </ul>
-            <button class="btn btn-primary mt-auto" onclick="startQuiz('${code}')" ${disabled ? "disabled" : ""}>
-              ${disabled ? "Unavailable" : "Start Quiz"}
-            </button>
-          </div>
-        </div>
-      `;
-
-      container.appendChild(card);
-    }
+  const allowanceSnap = await getDoc(doc(db, "quizzesAllownce", studentName));
+  if (!allowanceSnap.exists()) {
+    container.innerHTML = `<p>No quizzes available for you.</p>`;
+    return;
   }
+
+  const allowanceData = allowanceSnap.data();
+  const allowedQuizzes = Array.isArray(allowanceData.allowed) ? allowanceData.allowed : [];
+  const reattemptQuizzes = Array.isArray(allowanceData.reattempts) ? allowanceData.reattempts : [];
+
+  const quizCodes = [...new Set([...allowedQuizzes, ...reattemptQuizzes])];
+  if (quizCodes.length === 0) {
+    container.innerHTML = `<p>No quizzes available.</p>`;
+    return;
+  }
+
+  const now = new Date();
+
+  for (const code of quizCodes) {
+    const quizSnap = await getDoc(doc(db, "quizzes", code));
+    if (!quizSnap.exists()) continue;
+
+    const quiz = quizSnap.data();
+    const start = quiz.startAt ? new Date(quiz.startAt) : null;
+    const end = quiz.endAt ? new Date(quiz.endAt) : null;
+
+    const isReattempt = reattemptQuizzes.includes(code);
+    const reviewSnap = await getDoc(doc(db, `review_${code}`, studentName));
+    const alreadyAttempted = reviewSnap.exists();
+
+    let isAvailable = true;
+    let statusText = isReattempt ? "Available (Reattempt)" : "Available";
+    let statusClass = "text-success";
+    let disabled = false;
+
+    if (start && now < start) {
+      isAvailable = false;
+      statusText = "Upcoming";
+      statusClass = "text-warning";
+      disabled = true;
+    } else if (end && now > end) {
+      isAvailable = false;
+      statusText = "Expired";
+      statusClass = "text-danger";
+      disabled = true;
+    } else if (alreadyAttempted && !isReattempt) {
+      isAvailable = false;
+      statusText = "Already Attempted";
+      statusClass = "text-secondary";
+      disabled = true;
+    }
+
+    const totalQuestions = Array.isArray(quiz.questions) ? quiz.questions.length : 0;
+    const totalMarks = totalQuestions * (quiz.markPerQuestion || 1);
+    const timePerQSec = quiz.timePerQuestionSeconds || 15;
+    const timeDuration = totalQuestions * timePerQSec;
+
+    const formatDate = (date) => date.toLocaleString(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short"
+    });
+
+    const card = document.createElement("div");
+    card.className = "col-lg-4 col-md-6 col-sm-12";
+
+    card.innerHTML = `
+      <div class="card shadow-sm h-100 border-0">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">${quiz.title}</h5>
+          ${quiz.description ? `<p class="card-text small">${quiz.description}</p>` : ""}
+          <ul class="list-unstyled small mb-3">
+            ${start ? `<li><strong>Start:</strong> ${formatDate(start)}</li>` : ""}
+            ${end ? `<li><strong>End:</strong> ${formatDate(end)}</li>` : ""}
+            <li><strong>Total Questions:</strong> ${totalQuestions}</li>
+            <li><strong>Total Marks:</strong> ${totalMarks}</li>
+            <li><strong>Time Duration:</strong> ${Math.floor(timeDuration / 60)} min ${timeDuration % 60} sec</li>
+            <li class="${statusClass}"><strong>Status:</strong> ${statusText}</li>
+          </ul>
+          <button class="btn btn-primary mt-auto" onclick="startQuiz('${code}')" ${disabled ? "disabled" : ""}>
+            ${disabled ? "Unavailable" : "Start Quiz"}
+          </button>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(card);
+  }
+}
+
 
   window.startQuiz = (code) => {
     window.location.href = `quiz.html?code=${code}`;
