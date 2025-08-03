@@ -160,7 +160,7 @@ function renderQuestions() {
 
 parseBtn.addEventListener("click", () => {
   const inputText = textInput.value.trim();
-  const blocks = inputText.split("---").map(b => b.trim()).filter(b => b);
+  const blocks = inputText.split(/\n\s*\n/).map(b => b.trim()).filter(b => b); // split by blank lines
   parsedQuestions = [];
 
   blocks.forEach(block => {
@@ -173,15 +173,17 @@ parseBtn.addEventListener("click", () => {
     const d = lines[4].replace(/^d\)\s*/i, "");
     const answerLetter = lines[5].replace(/^Answer:\s*/i, "").toLowerCase();
     const correct = ["a", "b", "c", "d"].includes(answerLetter) ? answerLetter : 'a';
-    parsedQuestions.push({ question: questionText, a, b, c, d, correct, timeLimit: 30 });
+    parsedQuestions.push({ question: questionText, a, b, c, d, correct, timeLimit: 15 });
   });
 
-  if (parsedQuestions.length === 0) alert("No valid questions found. Check your format.");
-  else {
+  if (parsedQuestions.length === 0) {
+    alert("No valid questions found. Check your format.");
+  } else {
     renderQuestions();
     alert(`${parsedQuestions.length} questions parsed successfully.`);
   }
 });
+
 
 function generateQuizCode(length = 6) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
