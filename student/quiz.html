@@ -12,6 +12,8 @@
     .timer { font-weight: bold; color: #c0392b; }
     .hidden { display: none; }
     .question-text { font-size: 18px; font-weight: 500; }
+    .progress-bar-wrapper { height: 10px; background: #ddd; border-radius: 5px; overflow: hidden; margin-bottom: 10px; }
+    .progress-bar-inner { height: 100%; background: #3498db; width: 100%; transition: width 1s linear; }
   </style>
 </head>
 <body>
@@ -19,6 +21,9 @@
 <div class="quiz-container">
   <h3 id="quizTitle"></h3>
   <p id="quizDescription" class="text-muted mb-3"></p>
+  <div class="progress-bar-wrapper">
+    <div id="quizProgress" class="progress-bar-inner"></div>
+  </div>
   <div class="d-flex justify-content-between align-items-center mb-2">
     <span>Question <span id="currentQ"></span> of <span id="totalQ"></span></span>
     <span class="timer">⏱ <span id="timeLeft"></span></span>
@@ -29,7 +34,6 @@
   <button id="nextBtn" class="btn btn-primary mt-3">Next</button>
 </div>
 
-<!-- Only the <script> part is updated below -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import {
@@ -71,12 +75,14 @@
   const currentQ = document.getElementById("currentQ");
   const totalQ = document.getElementById("totalQ");
   const timeLeft = document.getElementById("timeLeft");
+  const quizProgress = document.getElementById("quizProgress");
 
   let quizData = {};
   let currentQuestionIndex = 0;
   let answers = [];
-  let timer;
-  let secondsPerQ = 15;
+  let globalTimer;
+  let totalTimeSeconds;
+  let remainingTime;
 
   async function loadQuiz() {
     const quizRef = doc(db, "quizzes", quizCode);
@@ -87,18 +93,20 @@
     }
 
     quizData = quizSnap.data();
-    secondsPerQ = quizData.timePerQuestionSeconds || 15;
+    const questions = quizData.questions || [];
 
     quizTitle.textContent = quizData.title;
     quizDescription.textContent = quizData.description || "";
-    totalQ.textContent = quizData.questions.length;
+    totalQ.textContent = questions.length;
 
+    totalTimeSeconds = questions.reduce((acc, q) => acc + (q.timeLimit || 15), 0);
+    remainingTime = totalTimeSeconds;
+
+    startGlobalTimer();
     showQuestion();
   }
 
   function showQuestion() {
-    clearInterval(timer);
-
     const q = quizData.questions[currentQuestionIndex];
     currentQ.textContent = currentQuestionIndex + 1;
     questionBox.innerHTML = `<div class="question-text">${q.question}</div>`;
@@ -118,8 +126,6 @@
     if (answers[currentQuestionIndex]) {
       highlightSelectedOption(answers[currentQuestionIndex]);
     }
-
-    startTimer(secondsPerQ);
   }
 
   function selectOption(key) {
@@ -136,17 +142,23 @@
     });
   }
 
-  function startTimer(seconds) {
-    let time = seconds;
-    timeLeft.textContent = `${time}s`;
-    timer = setInterval(() => {
-      time--;
-      timeLeft.textContent = `${time}s`;
-      if (time <= 0) {
-        clearInterval(timer);
-        nextBtn.click();
+  function startGlobalTimer() {
+    updateTimerUI();
+    globalTimer = setInterval(() => {
+      remainingTime--;
+      updateTimerUI();
+
+      if (remainingTime <= 0) {
+        clearInterval(globalTimer);
+        submitQuiz();
       }
     }, 1000);
+  }
+
+  function updateTimerUI() {
+    timeLeft.textContent = `${remainingTime}s`;
+    const percent = (remainingTime / totalTimeSeconds) * 100;
+    quizProgress.style.width = `${percent}%`;
   }
 
   nextBtn.addEventListener("click", () => {
@@ -163,52 +175,54 @@
   });
 
   async function submitQuiz() {
-    clearInterval(timer);
-    nextBtn.disabled = true;
+  clearInterval(globalTimer);
+  nextBtn.disabled = true;
 
-    let score = 0;
-    const reviewAnswers = [];
+  let score = 0;
+  const reviewAnswers = [];
 
-    answers.forEach((ans, i) => {
-      const q = quizData.questions[i];
-      const correctKey = q.correct;
-      if (ans === correctKey) {
-        score += quizData.markPerQuestion || 1;
+  quizData.questions.forEach((q, i) => {
+    const correctKey = q.correct;
+    const selectedKey = answers[i] ?? "not Given";
+
+    if (selectedKey === correctKey) {
+      score += quizData.markPerQuestion || 1;
+    }
+
+    reviewAnswers.push({
+      question: q.question,
+      selected: selectedKey,
+      correct: correctKey,
+      options: {
+        a: q.a,
+        b: q.b,
+        c: q.c,
+        d: q.d
       }
-
-      reviewAnswers.push({
-        question: q.question,
-        selected: ans,
-        correct: correctKey,
-        options: {
-          a: q.a,
-          b: q.b,
-          c: q.c,
-          d: q.d
-        }
-      });
     });
+  });
 
-    await setDoc(doc(db, `review_${quizCode}`, studentName), {
-      student: studentName,
-      quizCode: quizCode,
-      score,
-      total: quizData.questions.length * (quizData.markPerQuestion || 1),
-      answers: reviewAnswers,
-      submittedAt: Timestamp.now()
+  await setDoc(doc(db, `review_${quizCode}`, studentName), {
+    student: studentName,
+    quizCode: quizCode,
+    score,
+    total: quizData.questions.length * (quizData.markPerQuestion || 1),
+    answers: reviewAnswers,
+    submittedAt: Timestamp.now()
+  });
+
+  const leaderboardRef = doc(db, "leaderboards", quizCode);
+  await updateDoc(leaderboardRef, {
+    entries: arrayUnion({ name: studentName, score })
+  }).catch(async () => {
+    await setDoc(leaderboardRef, {
+      entries: [{ name: studentName, score }]
     });
+  });
 
-    const leaderboardRef = doc(db, "leaderboards", quizCode);
-    await updateDoc(leaderboardRef, {
-      entries: arrayUnion({ name: studentName, score })
-    }).catch(async () => {
-      await setDoc(leaderboardRef, {
-        entries: [{ name: studentName, score }]
-      });
-    });
+  window.location.href = "history.html";
+}
 
-    window.location.href = "history.html";
-  }
 
   loadQuiz();
 </script>
