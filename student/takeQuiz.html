@@ -161,7 +161,7 @@
     const totalMarks = totalQuestions * (quiz.markPerQuestion || 1);
     let timeDuration = 0;
 if (Array.isArray(quiz.questions)) {
-  timeDuration = quiz.questions.reduce((sum, q) => sum + (q.timeLimit || 15), 0);
+  timeDuration = quiz.questions.reduce((sum, q) => sum + (q.timeLimit || 20), 0);
 }
 const minutes = Math.floor(timeDuration / 60);
 const seconds = timeDuration % 60;
