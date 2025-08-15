@@ -1,0 +1,270 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Allowance - Admin Panel</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f5f9f8; font-family: 'Segoe UI', sans-serif; }
+    .sidebar { min-height: 100vh; background-color: #6f42c1; color: white; padding: 20px 10px; }
+    .sidebar h4 { font-weight: bold; margin-bottom: 30px; }
+    .sidebar a { color: white; text-decoration: none; display: block; padding: 10px; border-radius: 8px; transition: background-color 0.3s ease; cursor: pointer; }
+    .sidebar a:hover, .sidebar a.active { background-color: #5a32a3; }
+    .sidebar a.logout-link { color: #ffcccc !important; }
+    .sidebar a.logout-link:hover { background-color: #c0392b; color: white !important; }
+    .toggle-btn { display: none; }
+    @media (max-width: 768px) {
+      .sidebar { position: fixed; width: 200px; z-index: 1000; transform: translateX(-100%); transition: transform 0.3s ease-in-out; }
+      .sidebar.show { transform: translateX(0); }
+      .toggle-btn { display: block; background-color: #6f42c1; color: white; border: none; padding: 10px 15px; margin: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Toggle button -->
+<button class="toggle-btn" onclick="toggleSidebar()">☰ Menu</button>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-3 sidebar" id="sidebar">
+      <h4>Admin Panel</h4>
+      <a class="nav-link" href="createQuiz.html">Create Quiz</a>
+      <a class="nav-link" href="quizHistory.html">Quiz History</a>
+      <a class="nav-link" href="studentManage.html">Student Management</a>
+      <a class="nav-link" href="performance.html">Student Performance</a>
+      <a class="nav-link active" href="studentAllowance.html">Student Allowance</a>
+  <a class="nav-link" href="createAssignment.html">Assignment Creator</a>
+      <hr class="text-white">
+      <a class="nav-link logout-link" href="../index.html">Logout</a>
+    </div>
+
+    <div class="col-md-9 p-4">
+      <h3 class="mb-4">Student Allowance</h3>
+      <div id="quizList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="allowModal" tabindex="-1" aria-labelledby="allowModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="allowModalLabel">Allow Students for Quiz</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="allowForm">
+          <div id="studentCheckboxes" class="row"></div>
+          <input type="hidden" id="selectedQuizCode">
+          <div class="text-end mt-3">
+            <button type="submit" class="btn btn-primary">Save Allowances</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reattempt Modal -->
+<div class="modal fade" id="reattemptModal" tabindex="-1" aria-labelledby="reattemptModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reattemptModalLabel">Allow Reattempt</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="reattemptForm">
+          <div id="reattemptCheckboxes" class="row"></div>
+          <input type="hidden" id="selectedReattemptQuizCode">
+          <div class="text-end mt-3">
+            <button type="submit" class="btn btn-success">Save Reattempts</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("show");
+  }
+</script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    getDocs,
+    doc,
+    setDoc,
+    getDoc,
+    arrayUnion, updateDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC_lvF65P7vaKYnKEMrpHfJroMe-vh3w4U",
+    authDomain: "quizapp-f370d.firebaseapp.com",
+    projectId: "quizapp-f370d",
+    storageBucket: "quizapp-f370d.appspot.com",
+    messagingSenderId: "822956185807",
+    appId: "1:822956185807:web:831411b98aacc662c33fba"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const quizList = document.getElementById("quizList");
+  const studentCheckboxes = document.getElementById("studentCheckboxes");
+  const allowForm = document.getElementById("allowForm");
+  const selectedQuizCode = document.getElementById("selectedQuizCode");
+
+  async function loadQuizzes() {
+    const quizSnapshot = await getDocs(collection(db, "quizzes"));
+    quizList.innerHTML = "";
+    quizSnapshot.forEach(docSnap => {
+      const quiz = docSnap.data();
+      const code = docSnap.id;
+      const div = document.createElement("div");
+      div.className = "card mb-3";
+      div.innerHTML = `
+  <div class="card-body d-flex justify-content-between align-items-center">
+    <div>
+      <h5 class="card-title">${quiz.title}</h5>
+      <p class="card-text mb-0"><strong>Code:</strong> ${code}</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-primary" onclick="openAllowModal('${code}')">Allow Students</button>
+      <button class="btn btn-outline-success" onclick="openReattemptModal('${code}')">Reattempt</button>
+    </div>
+  </div>
+`;
+
+      quizList.appendChild(div);
+    });
+  }
+
+  window.openAllowModal = async function(code) {
+    selectedQuizCode.value = code;
+
+    const studentsSnapshot = await getDocs(collection(db, "students"));
+    studentCheckboxes.innerHTML = "";
+
+    for (const docSnap of studentsSnapshot.docs) {
+      const studentName = docSnap.data().name;
+
+      const allowanceDoc = await getDoc(doc(db, "quizzesAllownce", studentName));
+      const allowedQuizzes = allowanceDoc.exists() ? allowanceDoc.data().allowed || [] : [];
+
+      const checked = allowedQuizzes.includes(code) ? "checked" : "";
+      const col = document.createElement("div");
+      col.className = "col-md-4 mb-2";
+      col.innerHTML = `
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" data-name="${studentName}" id="student_${studentName}" ${checked}>
+          <label class="form-check-label" for="student_${studentName}">
+            ${studentName}
+          </label>
+        </div>
+      `;
+      studentCheckboxes.appendChild(col);
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById("allowModal"));
+    modal.show();
+  };
+
+  const reattemptCheckboxes = document.getElementById("reattemptCheckboxes");
+const reattemptForm = document.getElementById("reattemptForm");
+const selectedReattemptQuizCode = document.getElementById("selectedReattemptQuizCode");
+
+window.openReattemptModal = async function(code) {
+  selectedReattemptQuizCode.value = code;
+  reattemptCheckboxes.innerHTML = "";
+
+  const reviewSnapshot = await getDocs(collection(db, `review_${code}`));
+  for (const docSnap of reviewSnapshot.docs) {
+    const studentName = docSnap.id;
+
+    const col = document.createElement("div");
+    col.className = "col-md-4 mb-2";
+    col.innerHTML = `
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" data-name="${studentName}" id="reattempt_${studentName}">
+        <label class="form-check-label" for="reattempt_${studentName}">
+          ${studentName}
+        </label>
+      </div>
+    `;
+    reattemptCheckboxes.appendChild(col);
+  }
+
+  const modal = new bootstrap.Modal(document.getElementById("reattemptModal"));
+  modal.show();
+};
+
+reattemptForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const checkboxes = reattemptCheckboxes.querySelectorAll("input[type=checkbox]");
+  const quizCode = selectedReattemptQuizCode.value;
+
+  for (const checkbox of checkboxes) {
+    if (!checkbox.checked) continue;
+
+    const studentName = checkbox.dataset.name;
+    const studentDocRef = doc(db, "quizzesAllownce", studentName);
+
+    await updateDoc(studentDocRef, {
+      reattempts: arrayUnion(quizCode)
+    }).catch(async (error) => {
+      // If doc doesn't exist, create it with reattempts field
+      await setDoc(studentDocRef, {
+        reattempts: [quizCode]
+      }, { merge: true });
+    });
+  }
+
+  alert("Reattempt access updated.");
+  bootstrap.Modal.getInstance(document.getElementById("reattemptModal")).hide();
+});
+
+
+  allowForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const checkboxes = studentCheckboxes.querySelectorAll("input[type=checkbox]");
+    const quizCode = selectedQuizCode.value;
+
+    for (const checkbox of checkboxes) {
+      const studentName = checkbox.dataset.name;
+      const studentDocRef = doc(db, "quizzesAllownce", studentName);
+      const existingDoc = await getDoc(studentDocRef);
+      let allowed = existingDoc.exists() ? existingDoc.data().allowed || [] : [];
+
+      if (checkbox.checked && !allowed.includes(quizCode)) {
+        allowed.push(quizCode);
+      } else if (!checkbox.checked && allowed.includes(quizCode)) {
+        allowed = allowed.filter(q => q !== quizCode);
+      }
+
+      await setDoc(studentDocRef, { allowed }, { merge: true });
+    }
+
+    alert("Student allowances updated.");
+    bootstrap.Modal.getInstance(document.getElementById("allowModal")).hide();
+  });
+
+  loadQuizzes();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+
