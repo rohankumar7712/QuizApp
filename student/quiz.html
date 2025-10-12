@@ -111,7 +111,12 @@
     }
 
     currentQ.textContent = currentQuestionIndex + 1;
-    questionBox.innerHTML = `<div class="question-text">${q.question}</div>`;
+    const isCodeQuestion = /[;{}()=<>]/.test(q.question);
+const questionHTML = isCodeQuestion
+  ? `<pre class="question-text"><code>${q.question}</code></pre>`
+  : `<div class="question-text">${q.question}</div>`;
+questionBox.innerHTML = questionHTML;
+
     optionsBox.innerHTML = "";
 
     const optionKeys = ["a", "b", "c", "d"];

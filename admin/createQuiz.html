@@ -122,7 +122,7 @@ function renderQuestions() {
     card.className = "card mb-3 p-3";
     card.innerHTML = `
       <label>Question ${idx + 1}</label>
-      <input type="text" class="form-control mb-2" placeholder="Enter question">
+      <textarea class="form-control mb-2" rows="4" placeholder="Enter question"></textarea>
       <input type="text" class="form-control mb-2" placeholder="Option A">
       <input type="text" class="form-control mb-2" placeholder="Option B">
       <input type="text" class="form-control mb-2" placeholder="Option C">
@@ -138,7 +138,7 @@ function renderQuestions() {
       <input type="number" class="form-control" value="30">
     `;
 
-    const inputs = card.querySelectorAll("input, select");
+    const inputs = card.querySelectorAll("input, select, textarea");
     inputs[0].value = q.question;
     inputs[1].value = q.a;
     inputs[2].value = q.b;
@@ -161,20 +161,36 @@ function renderQuestions() {
 
 parseBtn.addEventListener("click", () => {
   const inputText = textInput.value.trim();
-  const blocks = inputText.split(/\n\s*\n/).map(b => b.trim()).filter(b => b); // split by blank lines
+  const blocks = inputText
+    .split(/-{3,}|\n\s*\n/) // split by --- or blank lines
+    .map(b => b.trim())
+    .filter(b => b);
+
   parsedQuestions = [];
 
   blocks.forEach(block => {
     const lines = block.split("\n").map(line => line.trim()).filter(line => line);
-    if (lines.length < 6) return;
-    const questionText = lines[0].replace(/^Question:\s*/i, "");
-    const a = lines[1].replace(/^a\)\s*/i, "");
-    const b = lines[2].replace(/^b\)\s*/i, "");
-    const c = lines[3].replace(/^c\)\s*/i, "");
-    const d = lines[4].replace(/^d\)\s*/i, "");
-    const answerLetter = lines[5].replace(/^Answer:\s*/i, "").toLowerCase();
-    const correct = ["a", "b", "c", "d"].includes(answerLetter) ? answerLetter : 'a';
-    parsedQuestions.push({ question: questionText, a, b, c, d, correct, timeLimit: 20 });
+
+    // Find where options start (line with "a)")
+    const optionStartIndex = lines.findIndex(l => /^a\)/i.test(l));
+    if (optionStartIndex === -1) return;
+
+    // Everything before options is the question (including code)
+    const questionLines = lines.slice(0, optionStartIndex);
+    const questionText = questionLines.join("\n").replace(/^Question:\s*/i, "").trim();
+
+    // Extract options
+    const a = lines[optionStartIndex]?.replace(/^a\)\s*/i, "") || "";
+    const b = lines[optionStartIndex + 1]?.replace(/^b\)\s*/i, "") || "";
+    const c = lines[optionStartIndex + 2]?.replace(/^c\)\s*/i, "") || "";
+    const d = lines[optionStartIndex + 3]?.replace(/^d\)\s*/i, "") || "";
+
+    // Extract correct answer (last line with "Answer:")
+    const answerLine = lines.find(l => /^Answer:/i.test(l));
+    const answerLetter = answerLine ? answerLine.replace(/^Answer:\s*/i, "").toLowerCase() : "a";
+    const correct = ["a", "b", "c", "d"].includes(answerLetter) ? answerLetter : "a";
+
+    parsedQuestions.push({ question: questionText, a, b, c, d, correct, timeLimit: 30 });
   });
 
   if (parsedQuestions.length === 0) {
@@ -184,6 +200,7 @@ parseBtn.addEventListener("click", () => {
     alert(`${parsedQuestions.length} questions parsed successfully.`);
   }
 });
+
 
 
 function generateQuizCode(length = 6) {
