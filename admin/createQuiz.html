@@ -33,8 +33,6 @@
       <a class="nav-link" href="studentManage.html">Student Management</a>
       <a class="nav-link" href="performance.html">Student Performance</a>
       <a class="nav-link" href="studentAllowance.html">Student Allowance</a>
- 
- 
       <hr class="text-white">
       <a class="nav-link logout-link" href="../index.html">Logout</a>
     </div>
@@ -42,6 +40,7 @@
     <div class="col-md-9 p-4">
       <h3>Create Quiz</h3>
       <input type="text" class="form-control mb-3" id="quizTitle" placeholder="Quiz Title"/>
+      
       <div class="row mb-4">
         <div class="col">
           <label>Start Date</label>
@@ -51,6 +50,13 @@
           <label>End Date</label>
           <input type="datetime-local" class="form-control" id="endDate"/>
         </div>
+      </div>
+
+      <!-- ✅ NEW FIELD: Total Questions to Show in Quiz -->
+      <div class="mb-4">
+        <label for="totalQuestions" class="form-label">Total Questions in Quiz</label>
+        <input type="number" class="form-control" id="totalQuestions" placeholder="e.g. 20" min="1">
+        <small class="text-muted">Enter how many random questions will appear in the quiz for students.</small>
       </div>
 
       <h5>Manual Entry</h5>
@@ -162,7 +168,7 @@ function renderQuestions() {
 parseBtn.addEventListener("click", () => {
   const inputText = textInput.value.trim();
   const blocks = inputText
-    .split(/-{3,}|\n\s*\n/) // split by --- or blank lines
+    .split(/-{3,}|\n\s*\n/)
     .map(b => b.trim())
     .filter(b => b);
 
@@ -170,22 +176,17 @@ parseBtn.addEventListener("click", () => {
 
   blocks.forEach(block => {
     const lines = block.split("\n").map(line => line.trim()).filter(line => line);
-
-    // Find where options start (line with "a)")
     const optionStartIndex = lines.findIndex(l => /^a\)/i.test(l));
     if (optionStartIndex === -1) return;
 
-    // Everything before options is the question (including code)
     const questionLines = lines.slice(0, optionStartIndex);
     const questionText = questionLines.join("\n").replace(/^Question:\s*/i, "").trim();
 
-    // Extract options
     const a = lines[optionStartIndex]?.replace(/^a\)\s*/i, "") || "";
     const b = lines[optionStartIndex + 1]?.replace(/^b\)\s*/i, "") || "";
     const c = lines[optionStartIndex + 2]?.replace(/^c\)\s*/i, "") || "";
     const d = lines[optionStartIndex + 3]?.replace(/^d\)\s*/i, "") || "";
 
-    // Extract correct answer (last line with "Answer:")
     const answerLine = lines.find(l => /^Answer:/i.test(l));
     const answerLetter = answerLine ? answerLine.replace(/^Answer:\s*/i, "").toLowerCase() : "a";
     const correct = ["a", "b", "c", "d"].includes(answerLetter) ? answerLetter : "a";
@@ -201,16 +202,22 @@ parseBtn.addEventListener("click", () => {
   }
 });
 
-
-
 function generateQuizCode(length = 6) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
 
 saveQBtn.addEventListener("click", async () => {
-  if (!quizTitle.value || !startDate.value || !endDate.value || parsedQuestions.length === 0) {
-    alert("Please fill all fields and add at least one question.");
+  const totalQuestionsInput = document.getElementById("totalQuestions");
+  const totalQuestions = parseInt(totalQuestionsInput.value);
+
+  if (!quizTitle.value || !startDate.value || !endDate.value || parsedQuestions.length === 0 || !totalQuestions) {
+    alert("Please fill all fields, add at least one question, and enter total questions for quiz.");
+    return;
+  }
+
+  if (totalQuestions > parsedQuestions.length) {
+    alert("Total quiz questions cannot be more than total inserted questions!");
     return;
   }
 
@@ -222,6 +229,7 @@ saveQBtn.addEventListener("click", async () => {
     title: quizTitle.value,
     startAt: startDate.value,
     endAt: endDate.value,
+    totalQuestions, // ✅ Added field
     questions: parsedQuestions,
     createdAt: new Date().toISOString()
   };
@@ -247,6 +255,7 @@ window.onload = async () => {
         quizTitle.value = quiz.title;
         startDate.value = quiz.startAt;
         endDate.value = quiz.endAt;
+        document.getElementById("totalQuestions").value = quiz.totalQuestions || "";
         parsedQuestions = quiz.questions || [];
         renderQuestions();
       } else {

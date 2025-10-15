@@ -83,9 +83,9 @@ async function loadAllowedQuizzes() {
     const quizSnap = await getDoc(doc(db, "quizzes", code));
     if (!quizSnap.exists()) continue;
     const quiz = quizSnap.data();
+
     const start = quiz.startAt ? new Date(quiz.startAt) : null;
     const end = quiz.endAt ? new Date(quiz.endAt) : null;
-
     const isReattempt = reattemptQuizzes.includes(code);
     const reviewSnap = await getDoc(doc(db, `review_${code}`, studentName));
     const alreadyAttempted = reviewSnap.exists();
@@ -100,10 +100,18 @@ async function loadAllowedQuizzes() {
     else if (alreadyAttempted && isReattempt) { statusText = "Reattempt Completed"; statusClass = "text-secondary"; disabled = true; }
     else if (!alreadyAttempted && isReattempt) { statusText = "Available (Reattempt)"; statusClass = "text-success"; }
 
-    const totalQuestions = Array.isArray(quiz.questions) ? quiz.questions.length : 0;
-    const totalMarks = totalQuestions * (quiz.markPerQuestion || 1);
-    let timeDuration = 0;
-    if (Array.isArray(quiz.questions)) timeDuration = quiz.questions.reduce((sum, q) => sum + (q.timeLimit || 20), 0);
+    // ✅ Use totalQuestions instead of full question length
+    const totalQuestions = quiz.totalQuestions || (Array.isArray(quiz.questions) ? quiz.questions.length : 0);
+    const markPerQuestion = quiz.markPerQuestion || 1;
+    const totalMarks = totalQuestions * markPerQuestion;
+
+    // Estimate time duration using average per-question limit
+    let avgTime = 20;
+    if (Array.isArray(quiz.questions) && quiz.questions.length > 0) {
+      const totalTime = quiz.questions.reduce((sum, q) => sum + (q.timeLimit || 20), 0);
+      avgTime = Math.floor(totalTime / quiz.questions.length);
+    }
+    const timeDuration = totalQuestions * avgTime;
 
     const formatDate = (date) => date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 

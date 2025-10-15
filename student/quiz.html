@@ -37,14 +37,24 @@ body { background: #f4f6fa; font-family: 'Segoe UI', sans-serif; }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, Timestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-const firebaseConfig = { apiKey:"AIzaSyC_lvF65P7vaKYnKEMrpHfJroMe-vh3w4U", authDomain:"quizapp-f370d.firebaseapp.com", projectId:"quizapp-f370d", storageBucket:"quizapp-f370d.appspot.com", messagingSenderId:"822956185807", appId:"1:822956185807:web:3d2244d53f9bb61ec33fba" };
+const firebaseConfig = { 
+  apiKey:"AIzaSyC_lvF65P7vaKYnKEMrpHfJroMe-vh3w4U", 
+  authDomain:"quizapp-f370d.firebaseapp.com", 
+  projectId:"quizapp-f370d", 
+  storageBucket:"quizapp-f370d.appspot.com", 
+  messagingSenderId:"822956185807", 
+  appId:"1:822956185807:web:3d2244d53f9bb61ec33fba" 
+};
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const urlParams = new URLSearchParams(window.location.search);
 const quizCode = urlParams.get("code");
 const studentName = localStorage.getItem("studentName");
-if (!quizCode || !studentName) { alert("Missing quiz code or student not logged in."); window.location.href = "dashboard.html"; }
+if (!quizCode || !studentName) { 
+  alert("Missing quiz code or student not logged in."); 
+  window.location.href = "dashboard.html"; 
+}
 
 const quizTitle = document.getElementById("quizTitle");
 const quizDescription = document.getElementById("quizDescription");
@@ -64,67 +74,142 @@ if (savedAnswers) answers = JSON.parse(savedAnswers);
 history.pushState(null, null, location.href);
 window.addEventListener("popstate", () => { history.pushState(null, null, location.href); alert("You cannot go back during the quiz!"); });
 document.addEventListener("contextmenu", e => e.preventDefault());
-document.addEventListener("keydown", e => { if ((e.ctrlKey && e.key === "t") || (e.ctrlKey && e.key === "Tab") || e.altKey) { e.preventDefault(); alert("This action is disabled!"); } if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I","C"].includes(e.key))) { e.preventDefault(); alert("Developer tools disabled!"); } });
-document.addEventListener("visibilitychange", () => { if (quizSubmitted) return; if (document.hidden) { tabSwitchCount++; if (tabSwitchCount >= 2) { alert("Tab switch limit reached! Quiz submitted."); submitQuiz(); } else { alert("Switching tabs not allowed. One more switch will auto-submit."); } } });
-window.addEventListener("beforeunload", e => { if (quizSubmitted) return; e.preventDefault(); e.returnValue = "Your quiz will be submitted!"; });
+document.addEventListener("keydown", e => { 
+  if ((e.ctrlKey && e.key === "t") || (e.ctrlKey && e.key === "Tab") || e.altKey) { e.preventDefault(); alert("This action is disabled!"); } 
+  if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I","C"].includes(e.key))) { e.preventDefault(); alert("Developer tools disabled!"); } 
+});
+document.addEventListener("visibilitychange", () => { 
+  if (quizSubmitted) return; 
+  if (document.hidden) { 
+    tabSwitchCount++; 
+    if (tabSwitchCount >= 2) { 
+      alert("Tab switch limit reached! Quiz submitted."); 
+      submitQuiz(); 
+    } else { 
+      alert("Switching tabs not allowed. One more switch will auto-submit."); 
+    } 
+  } 
+});
+window.addEventListener("beforeunload", e => { 
+  if (quizSubmitted) return; 
+  e.preventDefault(); 
+  e.returnValue = "Your quiz will be submitted!"; 
+});
 
 async function loadQuiz() {
-    const quizSnap = await getDoc(doc(db, "quizzes", quizCode));
-    if (!quizSnap.exists()) { alert("Quiz not found!"); return; }
-    quizData = quizSnap.data();
-    const questions = quizData.questions || [];
-    quizTitle.textContent = quizData.title;
-    quizDescription.textContent = quizData.description || "";
-    totalQ.textContent = questions.length;
-    showQuestion();
+  const quizSnap = await getDoc(doc(db, "quizzes", quizCode));
+  if (!quizSnap.exists()) { alert("Quiz not found!"); return; }
+
+  quizData = quizSnap.data();
+  const allQuestions = quizData.questions || [];
+  const totalAllowed = quizData.totalQuestions || allQuestions.length;
+
+  // ✅ Randomly select N questions based on totalQuestions
+  const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
+  quizData.questions = shuffled.slice(0, totalAllowed);
+
+  quizTitle.textContent = quizData.title;
+  quizDescription.textContent = quizData.description || "";
+  totalQ.textContent = quizData.questions.length;
+
+  showQuestion();
 }
 
 function showQuestion() {
-    clearInterval(questionTimer);
-    const q = quizData.questions[currentQuestionIndex];
-    if (!q) { submitQuiz(); return; }
-    currentQ.textContent = currentQuestionIndex + 1;
-    questionBox.innerHTML = /[;{}()=<>]/.test(q.question) ? `<pre class="question-text"><code>${q.question}</code></pre>` : `<div class="question-text">${q.question}</div>`;
-    optionsBox.innerHTML = "";
-    ["a","b","c","d"].forEach(key => { if(q[key]) { const btn = document.createElement("button"); btn.className="btn btn-outline-dark option-btn"; btn.textContent=q[key]; btn.onclick=()=>selectOption(key); optionsBox.appendChild(btn); } });
-    if (answers[currentQuestionIndex]) highlightSelectedOption(answers[currentQuestionIndex]);
-    remainingTime = q.timeLimit || 15;
-    updateTimerUI();
-    questionTimer = setInterval(() => { remainingTime--; updateTimerUI(); if (remainingTime <= 0) { clearInterval(questionTimer); saveAnswer(); nextQuestion(); } }, 1000);
+  clearInterval(questionTimer);
+  const q = quizData.questions[currentQuestionIndex];
+  if (!q) { submitQuiz(); return; }
+  currentQ.textContent = currentQuestionIndex + 1;
+  questionBox.innerHTML = /[;{}()=<>]/.test(q.question) 
+    ? `<pre class="question-text"><code>${q.question}</code></pre>` 
+    : `<div class="question-text">${q.question}</div>`;
+  
+  optionsBox.innerHTML = "";
+  ["a","b","c","d"].forEach(key => { 
+    if(q[key]) { 
+      const btn = document.createElement("button"); 
+      btn.className="btn btn-outline-dark option-btn"; 
+      btn.textContent=q[key]; 
+      btn.onclick=()=>selectOption(key); 
+      optionsBox.appendChild(btn); 
+    } 
+  });
+  
+  if (answers[currentQuestionIndex]) highlightSelectedOption(answers[currentQuestionIndex]);
+  remainingTime = q.timeLimit || 15;
+  updateTimerUI();
+  questionTimer = setInterval(() => { 
+    remainingTime--; 
+    updateTimerUI(); 
+    if (remainingTime <= 0) { 
+      clearInterval(questionTimer); 
+      saveAnswer(); 
+      nextQuestion(); 
+    } 
+  }, 1000);
 }
 
-function selectOption(key) { answers[currentQuestionIndex] = key; highlightSelectedOption(key); localStorage.setItem(`quiz_${quizCode}_answers`, JSON.stringify(answers)); }
-function highlightSelectedOption(selectedKey) { ["a","b","c","d"].forEach((key,i)=>{ const btn=optionsBox.children[i]; if(!btn)return; btn.classList.remove("btn-primary","btn-outline-dark"); btn.classList.add(key===selectedKey?"btn-primary":"btn-outline-dark"); }); }
-function updateTimerUI() { timeLeft.textContent=`${remainingTime}s`; const total=quizData.questions[currentQuestionIndex].timeLimit||15; quizProgress.style.width=`${(remainingTime/total)*100}%`; }
+function selectOption(key) { 
+  answers[currentQuestionIndex] = key; 
+  highlightSelectedOption(key); 
+  localStorage.setItem(`quiz_${quizCode}_answers`, JSON.stringify(answers)); 
+}
+function highlightSelectedOption(selectedKey) { 
+  ["a","b","c","d"].forEach((key,i)=>{ 
+    const btn=optionsBox.children[i]; 
+    if(!btn)return; 
+    btn.classList.remove("btn-primary","btn-outline-dark"); 
+    btn.classList.add(key===selectedKey?"btn-primary":"btn-outline-dark"); 
+  }); 
+}
+function updateTimerUI() { 
+  timeLeft.textContent=`${remainingTime}s`; 
+  const total=quizData.questions[currentQuestionIndex].timeLimit||15; 
+  quizProgress.style.width=`${(remainingTime/total)*100}%`; 
+}
 nextBtn.addEventListener("click",()=>{ saveAnswer(); nextQuestion(); });
-function nextQuestion(){ if(currentQuestionIndex<quizData.questions.length-1){currentQuestionIndex++;showQuestion();}else{submitQuiz();} }
+function nextQuestion(){ 
+  if(currentQuestionIndex<quizData.questions.length-1){
+    currentQuestionIndex++;showQuestion();
+  }else{
+    submitQuiz();
+  } 
+}
 function saveAnswer(){ if(!answers[currentQuestionIndex]) answers[currentQuestionIndex]="Not Answered"; }
 
 setInterval(async ()=>{
-    if(!quizData.questions||quizSubmitted) return;
-    await setDoc(doc(db, `autosave_${quizCode}`, studentName), { answers, lastSavedAt: Timestamp.now() }, { merge:true });
+  if(!quizData.questions||quizSubmitted) return;
+  await setDoc(doc(db, `autosave_${quizCode}`, studentName), { answers, lastSavedAt: Timestamp.now() }, { merge:true });
 },5000);
 
 async function submitQuiz() {
-    clearInterval(questionTimer);
-    nextBtn.disabled = true;
-    let score=0, reviewAnswers=[];
-    quizData.questions.forEach((q,i)=>{
-        const correctKey=q.correct;
-        const selectedKey=answers[i]??"Not Answered";
-        if(selectedKey===correctKey) score+=quizData.markPerQuestion||1;
-        reviewAnswers.push({ question:q.question, selected:selectedKey, correct:correctKey, options:{a:q.a,b:q.b,c:q.c,d:q.d} });
-    });
-    await setDoc(doc(db, `review_${quizCode}`, studentName), { student:studentName, quizCode, score, total:quizData.questions.length*(quizData.markPerQuestion||1), answers:reviewAnswers, submittedAt:Timestamp.now() });
-    const leaderboardRef=doc(db,"leaderboards",quizCode);
-    await updateDoc(leaderboardRef,{ entries: arrayUnion({ name:studentName, score }) }).catch(async()=>{ await setDoc(leaderboardRef,{ entries:[{ name:studentName, score }] }); });
+  clearInterval(questionTimer);
+  nextBtn.disabled = true;
+  let score=0, reviewAnswers=[];
+  quizData.questions.forEach((q,i)=>{
+    const correctKey=q.correct;
+    const selectedKey=answers[i]??"Not Answered";
+    if(selectedKey===correctKey) score+=quizData.markPerQuestion||1;
+    reviewAnswers.push({ question:q.question, selected:selectedKey, correct:correctKey, options:{a:q.a,b:q.b,c:q.c,d:q.d} });
+  });
+  await setDoc(doc(db, `review_${quizCode}`, studentName), { 
+    student:studentName, 
+    quizCode, 
+    score, 
+    total:quizData.questions.length*(quizData.markPerQuestion||1), 
+    answers:reviewAnswers, 
+    submittedAt:Timestamp.now() 
+  });
+  const leaderboardRef=doc(db,"leaderboards",quizCode);
+  await updateDoc(leaderboardRef,{ entries: arrayUnion({ name:studentName, score }) })
+  .catch(async()=>{ await setDoc(leaderboardRef,{ entries:[{ name:studentName, score }] }); });
 
-    // --- Remove quiz from reattempts after submission ---
-    const allowanceRef = doc(db,"quizzesAllownce",studentName);
-    await updateDoc(allowanceRef,{ reattempts: arrayRemove(quizCode) });
+  // Remove quiz from reattempts after submission
+  const allowanceRef = doc(db,"quizzesAllownce",studentName);
+  await updateDoc(allowanceRef,{ reattempts: arrayRemove(quizCode) });
 
-    quizSubmitted = true;
-    window.location.href="takeQuiz.html"; // redirect to refresh status
+  quizSubmitted = true;
+  window.location.href="takeQuiz.html";
 }
 
 loadQuiz();
