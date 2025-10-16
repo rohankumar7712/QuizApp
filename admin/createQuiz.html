@@ -1,132 +1,216 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Create Quiz - Admin Panel</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body { background: #f5f9f8; font-family: 'Segoe UI', sans-serif; }
-    .sidebar { min-height: 100vh; background-color: #6f42c1; color: white; padding: 20px 10px; }
-    .sidebar h4 { font-weight: bold; margin-bottom: 30px; }
-    .sidebar a { color: white; text-decoration: none; display: block; padding: 10px; border-radius: 8px; transition: background-color 0.3s ease; cursor: pointer; }
-    .sidebar a:hover, .sidebar a.active { background-color: #5a32a3; }
-    .sidebar a.logout-link { color: #ffcccc !important; }
-    .sidebar a.logout-link:hover { background-color: #c0392b; color: white !important; }
-    .toggle-btn { display: none; }
-    @media (max-width: 768px) {
-      .sidebar { position: fixed; width: 200px; z-index: 1000; transform: translateX(-100%); transition: transform 0.3s ease-in-out; }
-      .sidebar.show { transform: translateX(0); }
-      .toggle-btn { display: block; background-color: #6f42c1; color: white; border: none; padding: 10px 15px; margin: 10px; }
-    }
-  </style>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Quiz - Admin Panel</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background: #f5f9f8;
+        font-family: "Segoe UI", sans-serif;
+      }
+      .sidebar {
+        min-height: 100vh;
+        background-color: #6f42c1;
+        color: white;
+        padding: 20px 10px;
+      }
+      .sidebar h4 {
+        font-weight: bold;
+        margin-bottom: 30px;
+      }
+      .sidebar a {
+        color: white;
+        text-decoration: none;
+        display: block;
+        padding: 10px;
+        border-radius: 8px;
+        transition: background-color 0.3s ease;
+        cursor: pointer;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        background-color: #5a32a3;
+      }
+      .sidebar a.logout-link {
+        color: #ffcccc !important;
+      }
+      .sidebar a.logout-link:hover {
+        background-color: #c0392b;
+        color: white !important;
+      }
+      .toggle-btn {
+        display: none;
+      }
+      @media (max-width: 768px) {
+        .sidebar {
+          position: fixed;
+          width: 200px;
+          z-index: 1000;
+          transform: translateX(-100%);
+          transition: transform 0.3s ease-in-out;
+        }
+        .sidebar.show {
+          transform: translateX(0);
+        }
+        .toggle-btn {
+          display: block;
+          background-color: #6f42c1;
+          color: white;
+          border: none;
+          padding: 10px 15px;
+          margin: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="toggle-btn" onclick="toggleSidebar()">☰ Menu</button>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-3 sidebar" id="sidebar">
+          <h4>Admin Panel</h4>
+          <a class="nav-link" href="createQuiz.html">Create Quiz</a>
+          <a class="nav-link" href="quizHistory.html">Quiz History</a>
+          <a class="nav-link" href="studentManage.html">Student Management</a>
+          <a class="nav-link" href="performance.html">Student Performance</a>
+          <a class="nav-link" href="studentAllowance.html">Student Allowance</a>
+          <hr class="text-white" />
+          <a class="nav-link logout-link" href="../index.html">Logout</a>
+        </div>
 
-<button class="toggle-btn" onclick="toggleSidebar()">☰ Menu</button>
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-md-3 sidebar" id="sidebar">
-      <h4>Admin Panel</h4>
-      <a class="nav-link" href="createQuiz.html">Create Quiz</a>
-      <a class="nav-link" href="quizHistory.html">Quiz History</a>
-      <a class="nav-link" href="studentManage.html">Student Management</a>
-      <a class="nav-link" href="performance.html">Student Performance</a>
-      <a class="nav-link" href="studentAllowance.html">Student Allowance</a>
-      <hr class="text-white">
-      <a class="nav-link logout-link" href="../index.html">Logout</a>
+        <div class="col-md-9 p-4">
+          <h3>Create Quiz</h3>
+          <input
+            type="text"
+            class="form-control mb-3"
+            id="quizTitle"
+            placeholder="Quiz Title"
+          />
+
+          <div class="row mb-4">
+            <div class="col">
+              <label>Start Date</label>
+              <input
+                type="datetime-local"
+                class="form-control"
+                id="startDate"
+              />
+            </div>
+            <div class="col">
+              <label>End Date</label>
+              <input type="datetime-local" class="form-control" id="endDate" />
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label for="totalQuestions" class="form-label"
+              >Total Questions in Quiz</label
+            >
+            <input
+              type="number"
+              class="form-control"
+              id="totalQuestions"
+              placeholder="e.g. 20"
+              min="1"
+            />
+            <small class="text-muted"
+              >Enter how many random questions will appear in the quiz for
+              students.</small
+            >
+          </div>
+
+          <h5>Manual Entry</h5>
+          <div class="mb-3">
+            <button class="btn btn-primary me-2" id="addQuestionBtn">
+              Add Question
+            </button>
+            <button class="btn btn-success" id="saveQuizBtn">
+              Save & Generate Code
+            </button>
+          </div>
+
+          <div id="questions"></div>
+
+          <hr />
+          <h5>Text Format Input</h5>
+          <textarea
+            class="form-control mb-2"
+            id="textFormatInput"
+            rows="8"
+            placeholder="Enter questions here with format: 
+Question 1:
+a) Option A
+b) Option B
+c) Option C
+d) Option D
+Answer: a"
+          ></textarea>
+          <button class="btn btn-secondary" id="parseTextBtn">
+            Parse Text
+          </button>
+          <p id="saveMsg" class="mt-2 text-success text-center"></p>
+        </div>
+      </div>
     </div>
 
-    <div class="col-md-9 p-4">
-      <h3>Create Quiz</h3>
-      <input type="text" class="form-control mb-3" id="quizTitle" placeholder="Quiz Title"/>
-      
-      <div class="row mb-4">
-        <div class="col">
-          <label>Start Date</label>
-          <input type="datetime-local" class="form-control" id="startDate"/>
-        </div>
-        <div class="col">
-          <label>End Date</label>
-          <input type="datetime-local" class="form-control" id="endDate"/>
-        </div>
-      </div>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        setDoc,
+        doc,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-      <!-- ✅ NEW FIELD: Total Questions to Show in Quiz -->
-      <div class="mb-4">
-        <label for="totalQuestions" class="form-label">Total Questions in Quiz</label>
-        <input type="number" class="form-control" id="totalQuestions" placeholder="e.g. 20" min="1">
-        <small class="text-muted">Enter how many random questions will appear in the quiz for students.</small>
-      </div>
+      const firebaseConfig = {
+        apiKey: "AIzaSyC_lvF65P7vaKYnKEMrpHfJroMe-vh3w4U",
+        authDomain: "quizapp-f370d.firebaseapp.com",
+        projectId: "quizapp-f370d",
+        storageBucket: "quizapp-f370d.appspot.com",
+        messagingSenderId: "822956185807",
+        appId: "1:822956185807:web:3d2244d53f9bb61ec33fba",
+      };
 
-      <h5>Manual Entry</h5>
-      <div class="mb-3">
-        <button class="btn btn-primary me-2" id="addQuestionBtn">Add Question</button>
-        <button class="btn btn-success" id="saveQuizBtn">Save & Generate Code</button>
-      </div>
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
 
-      <div id="questions"></div>
+      const quizTitle = document.getElementById("quizTitle");
+      const startDate = document.getElementById("startDate");
+      const endDate = document.getElementById("endDate");
+      const questionsDiv = document.getElementById("questions");
+      const saveMsg = document.getElementById("saveMsg");
+      const parseBtn = document.getElementById("parseTextBtn");
+      const textInput = document.getElementById("textFormatInput");
+      const addQBtn = document.getElementById("addQuestionBtn");
+      const saveQBtn = document.getElementById("saveQuizBtn");
 
-      <hr/>
-      <h5>Text Format Input</h5>
-      <textarea class="form-control mb-2" id="textFormatInput" rows="8" placeholder="Question: What is 2+2?
-a) 2
-b) 3
-c) 4
-d) 5
-Answer: c
----
-Question: Capital of France?
-a) Berlin
-b) Madrid
-c) Rome
-d) Paris
-Answer: d"></textarea>
-      <button class="btn btn-secondary" id="parseTextBtn">Parse Text</button>
-      <p id="saveMsg" class="mt-2 text-success text-center"></p>
-    </div>
-  </div>
-</div>
+      let parsedQuestions = [];
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-import { getFirestore, collection, setDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+      addQBtn.addEventListener("click", () => {
+        parsedQuestions.push({
+          question: "",
+          a: "",
+          b: "",
+          c: "",
+          d: "",
+          correct: "a",
+          timeLimit: 30,
+        });
+        renderQuestions();
+      });
 
-const firebaseConfig = {
-  apiKey: "AIzaSyC_lvF65P7vaKYnKEMrpHfJroMe-vh3w4U",
-  authDomain: "quizapp-f370d.firebaseapp.com",
-  projectId: "quizapp-f370d",
-  storageBucket: "quizapp-f370d.appspot.com",
-  messagingSenderId: "822956185807",
-  appId: "1:822956185807:web:3d2244d53f9bb61ec33fba"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const quizTitle = document.getElementById("quizTitle");
-const startDate = document.getElementById("startDate");
-const endDate = document.getElementById("endDate");
-const questionsDiv = document.getElementById("questions");
-const saveMsg = document.getElementById("saveMsg");
-const parseBtn = document.getElementById("parseTextBtn");
-const textInput = document.getElementById("textFormatInput");
-const addQBtn = document.getElementById("addQuestionBtn");
-const saveQBtn = document.getElementById("saveQuizBtn");
-
-let parsedQuestions = [];
-
-addQBtn.addEventListener("click", () => {
-  parsedQuestions.push({ question: '', a: '', b: '', c: '', d: '', correct: 'a', timeLimit: 30 });
-  renderQuestions();
-});
-
-function renderQuestions() {
-  questionsDiv.innerHTML = '';
-  parsedQuestions.forEach((q, idx) => {
-    const card = document.createElement("div");
-    card.className = "card mb-3 p-3";
-    card.innerHTML = `
+      function renderQuestions() {
+        questionsDiv.innerHTML = "";
+        parsedQuestions.forEach((q, idx) => {
+          const card = document.createElement("div");
+          card.className = "card mb-3 p-3";
+          card.innerHTML = `
       <label>Question ${idx + 1}</label>
       <textarea class="form-control mb-2" rows="4" placeholder="Enter question"></textarea>
       <input type="text" class="form-control mb-2" placeholder="Option A">
@@ -144,57 +228,80 @@ function renderQuestions() {
       <input type="number" class="form-control" value="30">
     `;
 
-    const inputs = card.querySelectorAll("input, select, textarea");
-    inputs[0].value = q.question;
-    inputs[1].value = q.a;
-    inputs[2].value = q.b;
-    inputs[3].value = q.c;
-    inputs[4].value = q.d;
-    inputs[5].value = q.correct;
-    inputs[6].value = q.timeLimit;
+          const inputs = card.querySelectorAll("input, select, textarea");
+          inputs[0].value = q.question;
+          inputs[1].value = q.a;
+          inputs[2].value = q.b;
+          inputs[3].value = q.c;
+          inputs[4].value = q.d;
+          inputs[5].value = q.correct;
+          inputs[6].value = q.timeLimit;
 
-    inputs[0].addEventListener("input", e => q.question = e.target.value);
-    inputs[1].addEventListener("input", e => q.a = e.target.value);
-    inputs[2].addEventListener("input", e => q.b = e.target.value);
-    inputs[3].addEventListener("input", e => q.c = e.target.value);
-    inputs[4].addEventListener("input", e => q.d = e.target.value);
-    inputs[5].addEventListener("change", e => q.correct = e.target.value);
-    inputs[6].addEventListener("input", e => q.timeLimit = Number(e.target.value));
+          inputs[0].addEventListener(
+            "input",
+            (e) => (q.question = e.target.value)
+          );
+          inputs[1].addEventListener("input", (e) => (q.a = e.target.value));
+          inputs[2].addEventListener("input", (e) => (q.b = e.target.value));
+          inputs[3].addEventListener("input", (e) => (q.c = e.target.value));
+          inputs[4].addEventListener("input", (e) => (q.d = e.target.value));
+          inputs[5].addEventListener(
+            "change",
+            (e) => (q.correct = e.target.value)
+          );
+          inputs[6].addEventListener(
+            "input",
+            (e) => (q.timeLimit = Number(e.target.value))
+          );
 
-    questionsDiv.appendChild(card);
-  });
-}
+          questionsDiv.appendChild(card);
+        });
+      }
 
-parseBtn.addEventListener("click", () => {
+      parseBtn.addEventListener("click", () => {
   const inputText = textInput.value.trim();
-  const blocks = inputText
-    .split(/-{3,}|\n\s*\n/)
-    .map(b => b.trim())
-    .filter(b => b);
+  const blocks = inputText.split(/\n(?=Question\s*\d*\s*:)/).map(b => b.trim()).filter(b => b);
 
   parsedQuestions = [];
 
   blocks.forEach(block => {
-    const lines = block.split("\n").map(line => line.trim()).filter(line => line);
-    const optionStartIndex = lines.findIndex(l => /^a\)/i.test(l));
-    if (optionStartIndex === -1) return;
+    const lines = block.split("\n").map(l => l.trim()).filter(l => l);
+    if (lines.length === 0) return;
 
-    const questionLines = lines.slice(0, optionStartIndex);
-    const questionText = questionLines.join("\n").replace(/^Question:\s*/i, "").trim();
+    // Find question line
+    const questionLineIndex = lines.findIndex(l => /^Question\s*\d*\s*:/.test(l));
+    if (questionLineIndex === -1) return;
 
-    const a = lines[optionStartIndex]?.replace(/^a\)\s*/i, "") || "";
-    const b = lines[optionStartIndex + 1]?.replace(/^b\)\s*/i, "") || "";
-    const c = lines[optionStartIndex + 2]?.replace(/^c\)\s*/i, "") || "";
-    const d = lines[optionStartIndex + 3]?.replace(/^d\)\s*/i, "") || "";
+    // Everything from question line up to first option is the question
+    let optionStartIndex = lines.findIndex(l => /^[abcd]\)/i.test(l));
+    if (optionStartIndex === -1) optionStartIndex = lines.findIndex(l => /^Answer\s*:/i.test(l));
+    if (optionStartIndex === -1) optionStartIndex = lines.length;
 
-    const answerLine = lines.find(l => /^Answer:/i.test(l));
-    const answerLetter = answerLine ? answerLine.replace(/^Answer:\s*/i, "").toLowerCase() : "a";
-    const correct = ["a", "b", "c", "d"].includes(answerLetter) ? answerLetter : "a";
+    const questionTextLines = lines.slice(questionLineIndex, optionStartIndex);
+    const questionText = questionTextLines.join("\n").replace(/^Question\s*\d*\s*:/, "").trim();
 
-    parsedQuestions.push({ question: questionText, a, b, c, d, correct, timeLimit: 30 });
+    // Options
+    const a = (lines.find(l => /^a\)/i.test(l)) || "").replace(/^a\)\s*/i, "");
+    const b = (lines.find(l => /^b\)/i.test(l)) || "").replace(/^b\)\s*/i, "");
+    const c = (lines.find(l => /^c\)/i.test(l)) || "").replace(/^c\)\s*/i, "");
+    const d = (lines.find(l => /^d\)/i.test(l)) || "").replace(/^d\)\s*/i, "");
+
+    // Correct answer
+    const answerLine = lines.find(l => /^Answer\s*:/i.test(l));
+    const answer = answerLine ? answerLine.replace(/^Answer\s*:/i, "").trim().toLowerCase() : "a";
+
+    parsedQuestions.push({
+      question: questionText,
+      a,
+      b,
+      c,
+      d,
+      correct: ["a","b","c","d"].includes(answer) ? answer : "a",
+      timeLimit: 20
+    });
   });
 
-  if (parsedQuestions.length === 0) {
+  if(parsedQuestions.length === 0) {
     alert("No valid questions found. Check your format.");
   } else {
     renderQuestions();
@@ -202,75 +309,88 @@ parseBtn.addEventListener("click", () => {
   }
 });
 
-function generateQuizCode(length = 6) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-}
 
-saveQBtn.addEventListener("click", async () => {
-  const totalQuestionsInput = document.getElementById("totalQuestions");
-  const totalQuestions = parseInt(totalQuestionsInput.value);
-
-  if (!quizTitle.value || !startDate.value || !endDate.value || parsedQuestions.length === 0 || !totalQuestions) {
-    alert("Please fill all fields, add at least one question, and enter total questions for quiz.");
-    return;
-  }
-
-  if (totalQuestions > parsedQuestions.length) {
-    alert("Total quiz questions cannot be more than total inserted questions!");
-    return;
-  }
-
-  const editId = localStorage.getItem("editQuizId");
-  const quizCode = editId || generateQuizCode();
-
-  const quiz = {
-    quizCode,
-    title: quizTitle.value,
-    startAt: startDate.value,
-    endAt: endDate.value,
-    totalQuestions, // ✅ Added field
-    questions: parsedQuestions,
-    createdAt: new Date().toISOString()
-  };
-
-  try {
-    await setDoc(doc(db, "quizzes", quizCode), quiz);
-    saveMsg.textContent = `Quiz ${editId ? "updated" : "saved"} successfully! Code: ${quizCode}`;
-    if (editId) localStorage.removeItem("editQuizId");
-    setTimeout(() => window.location.reload(), 1000);
-  } catch (err) {
-    console.error(err);
-    alert("Error saving quiz!");
-  }
-});
-
-window.onload = async () => {
-  const editId = localStorage.getItem("editQuizId");
-  if (editId) {
-    try {
-      const docSnap = await getDoc(doc(db, "quizzes", editId));
-      if (docSnap.exists()) {
-        const quiz = docSnap.data();
-        quizTitle.value = quiz.title;
-        startDate.value = quiz.startAt;
-        endDate.value = quiz.endAt;
-        document.getElementById("totalQuestions").value = quiz.totalQuestions || "";
-        parsedQuestions = quiz.questions || [];
-        renderQuestions();
-      } else {
-        alert("Quiz not found!");
+      function generateQuizCode(length = 6) {
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        return Array.from(
+          { length },
+          () => chars[Math.floor(Math.random() * chars.length)]
+        ).join("");
       }
-    } catch (error) {
-      console.error("Error fetching quiz for editing:", error);
-    }
-  }
-};
 
-function toggleSidebar() {
-  document.getElementById("sidebar").classList.toggle("show");
-}
-</script>
+      saveQBtn.addEventListener("click", async () => {
+        const totalQuestionsInput = document.getElementById("totalQuestions");
+        const totalQuestions = parseInt(totalQuestionsInput.value);
 
-</body>
+        if (
+          !quizTitle.value ||
+          !startDate.value ||
+          !endDate.value ||
+          parsedQuestions.length === 0 ||
+          !totalQuestions
+        ) {
+          alert(
+            "Please fill all fields, add at least one question, and enter total questions for quiz."
+          );
+          return;
+        }
+
+        if (totalQuestions > parsedQuestions.length) {
+          alert(
+            "Total quiz questions cannot be more than total inserted questions!"
+          );
+          return;
+        }
+
+        const editId = localStorage.getItem("editQuizId");
+        const quizCode = editId || generateQuizCode();
+
+        const quiz = {
+          quizCode,
+          title: quizTitle.value,
+          startAt: startDate.value,
+          endAt: endDate.value,
+          totalQuestions,
+          questions: parsedQuestions,
+          createdAt: new Date().toISOString(),
+        };
+
+        try {
+          await setDoc(doc(db, "quizzes", quizCode), quiz);
+          saveMsg.textContent = `Quiz ${editId ? "updated" : "saved"} successfully! Code: ${quizCode}`;
+          if (editId) localStorage.removeItem("editQuizId");
+          setTimeout(() => window.location.reload(), 1000);
+        } catch (err) {
+          console.error(err);
+          alert("Error saving quiz!");
+        }
+      });
+
+      window.onload = async () => {
+        const editId = localStorage.getItem("editQuizId");
+        if (editId) {
+          try {
+            const docSnap = await getDoc(doc(db, "quizzes", editId));
+            if (docSnap.exists()) {
+              const quiz = docSnap.data();
+              quizTitle.value = quiz.title;
+              startDate.value = quiz.startAt;
+              endDate.value = quiz.endAt;
+              document.getElementById("totalQuestions").value = quiz.totalQuestions || "";
+              parsedQuestions = quiz.questions || [];
+              renderQuestions();
+            } else {
+              alert("Quiz not found!");
+            }
+          } catch (error) {
+            console.error("Error fetching quiz for editing:", error);
+          }
+        }
+      };
+
+      function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("show");
+      }
+    </script>
+  </body>
 </html>
