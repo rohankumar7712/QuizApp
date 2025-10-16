@@ -46,7 +46,11 @@
     <!-- Main content -->
     <div class="col-md-9 p-4">
       <h3 class="mb-4">Quiz History</h3>
-      <div id="quizList" class="row row-cols-1 row-cols-md-2 g-4"></div>
+      <!-- Two-column container for zig-zag layout -->
+      <div id="quizList" class="row g-4">
+        <div id="colLeft" class="col-md-6"></div>
+        <div id="colRight" class="col-md-6"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -73,36 +77,48 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const quizList = document.getElementById("quizList");
 const quizRef = collection(db, "quizzes");
 
 async function renderQuizzes() {
   const snapshot = await getDocs(quizRef);
-  quizList.innerHTML = "";
 
-  snapshot.forEach(docSnap => {
-    const quiz = docSnap.data();
+  const colLeft = document.getElementById("colLeft");
+  const colRight = document.getElementById("colRight");
+  colLeft.innerHTML = "";
+  colRight.innerHTML = "";
+
+  // Convert snapshot to array and sort by startAt
+  const quizzes = snapshot.docs.map(docSnap => ({
+    id: docSnap.id,
+    ...docSnap.data()
+  }));
+  quizzes.sort((a, b) => new Date(a.startAt) - new Date(b.startAt));
+
+  // Append cards in zig-zag: even -> left, odd -> right
+  quizzes.forEach((quiz, index) => {
     const start = new Date(quiz.startAt).toLocaleString();
     const end = new Date(quiz.endAt).toLocaleString();
 
-
     const card = document.createElement("div");
-    card.className = "col";
+    card.className = "card shadow-sm mb-4";
     card.innerHTML = `
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">${quiz.title}</h5>
-          <p class="card-text">
-            <strong>Quiz Code:</strong> ${quiz.quizCode || docSnap.id}<br>
-            <strong>Start:</strong> ${start}<br>
-            <strong>End:</strong> ${end}
-          </p>
-          <button class="btn btn-sm btn-primary me-2" onclick="editQuiz('${docSnap.id}')">Edit</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteQuiz('${docSnap.id}')">Delete</button>
-        </div>
+      <div class="card-body">
+        <h5 class="card-title">${quiz.title}</h5>
+        <p class="card-text">
+          <strong>Quiz Code:</strong> ${quiz.quizCode || quiz.id}<br>
+          <strong>Start:</strong> ${start}<br>
+          <strong>End:</strong> ${end}
+        </p>
+        <button class="btn btn-sm btn-primary me-2" onclick="editQuiz('${quiz.id}')">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteQuiz('${quiz.id}')">Delete</button>
       </div>
     `;
-    quizList.appendChild(card);
+
+    if (index % 2 === 0) {
+      colLeft.appendChild(card);
+    } else {
+      colRight.appendChild(card);
+    }
   });
 }
 
