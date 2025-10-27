@@ -5,34 +5,188 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Quiz</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
 <style>
-body { background: #f4f6fa; font-family: 'Segoe UI', sans-serif; }
-.quiz-container { max-width: 700px; margin: auto; margin-top: 50px; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-.option-btn { width: 100%; margin: 8px 0; text-align: left; }
-.timer { font-weight: bold; color: #c0392b; }
-.question-text { font-size: 18px; font-weight: 500; }
-.progress-bar-wrapper { height: 10px; background: #ddd; border-radius: 5px; overflow: hidden; margin-bottom: 10px; }
-.progress-bar-inner { height: 100%; background: #3498db; width: 100%; transition: width 1s linear; }
+body {
+  background: linear-gradient(135deg, #e3f2fd, #f8f9fa);
+  font-family: 'Poppins', sans-serif;
+  padding: 20px;
+}
+
+.quiz-container {
+  max-width: 700px;
+  margin: auto;
+  background: #fff;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 520px;
+}
+
+.quiz-header h3 {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.text-muted {
+  color: #7f8c8d !important;
+}
+
+.progress-bar-wrapper {
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 15px;
+}
+
+.progress-bar-inner {
+  height: 100%;
+  background: #3498db;
+  width: 100%;
+  transition: width 1s linear;
+}
+
+.timer {
+  font-weight: 600;
+  color: #e74c3c;
+}
+
+.question-text, pre, code {
+  font-family: 'Poppins', sans-serif !important;
+  font-size: 1.1rem;
+  color: #34495e;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.option-btn {
+  width: 100%;
+  margin: 8px 0;
+  text-align: left;
+  padding: 12px 15px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.option-btn:hover {
+  transform: translateY(-2px);
+}
+
+#nextBtn {
+  width: 100%;
+  font-weight: 600;
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: auto;
+}
+
+.quiz-body {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-bottom: 15px;
+}
+
+/* ✅ Thank You Modal Design */
+.modal-content.thankyou-card {
+  background: linear-gradient(135deg, #ffffff, #f0f9ff);
+  border-radius: 20px;
+  border: none;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  padding: 40px 25px;
+  text-align: center;
+  animation: fadeInUp 0.6s ease;
+  max-width: 400px;
+  margin: auto;
+}
+
+.thankyou-card h4 {
+  font-weight: 700;
+  color: #27ae60;
+  font-size: 1.6rem;
+}
+
+.thankyou-card p {
+  color: #34495e;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.thankyou-card .emoji {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 576px) {
+  .quiz-container {
+    padding: 20px;
+    min-height: 480px;
+  }
+  .question-text {
+    font-size: 1rem;
+  }
+}
 </style>
 </head>
 <body>
 
 <div class="quiz-container">
-  <h3 id="quizTitle"></h3>
-  <p id="quizDescription" class="text-muted mb-3"></p>
+  <div class="quiz-header">
+    <h3 id="quizTitle"></h3>
+    <p id="quizDescription" class="text-muted mb-3"></p>
+  </div>
+
   <div class="progress-bar-wrapper">
     <div id="quizProgress" class="progress-bar-inner"></div>
   </div>
+
   <div class="d-flex justify-content-between align-items-center mb-2">
     <span>Question <span id="currentQ"></span> of <span id="totalQ"></span></span>
     <span class="timer">⏱ <span id="timeLeft"></span></span>
   </div>
+
   <hr>
-  <div id="questionBox" class="mb-3"></div>
-  <div id="optionsBox"></div>
+
+  <div class="quiz-body">
+    <div id="questionBox" class="mb-3"></div>
+    <div id="optionsBox"></div>
+  </div>
+
   <button id="nextBtn" class="btn btn-primary mt-3">Next</button>
 </div>
 
+<!-- ✅ Improved Thank You Modal -->
+<div class="modal fade" id="thankYouModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content thankyou-card">
+      <div class="emoji">🌟</div>
+      <h4>Thank You for Giving the Exam!</h4>
+      <p>
+        I hope your exam went great!<br>
+        And if it didn’t, don’t stop — keep trying hard to achieve your goals.<br>
+        <strong>Best of luck</strong> for your future exams! 🍀
+      </p>
+      <small class="text-muted">Redirecting in 5 seconds...</small>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, Timestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
@@ -71,31 +225,6 @@ let quizData = {}, currentQuestionIndex = 0, answers = [], questionTimer, remain
 const savedAnswers = localStorage.getItem(`quiz_${quizCode}_answers`);
 if (savedAnswers) answers = JSON.parse(savedAnswers);
 
-history.pushState(null, null, location.href);
-window.addEventListener("popstate", () => { history.pushState(null, null, location.href); alert("You cannot go back during the quiz!"); });
-document.addEventListener("contextmenu", e => e.preventDefault());
-document.addEventListener("keydown", e => { 
-  if ((e.ctrlKey && e.key === "t") || (e.ctrlKey && e.key === "Tab") || e.altKey) { e.preventDefault(); alert("This action is disabled!"); } 
-  if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I","C"].includes(e.key))) { e.preventDefault(); alert("Developer tools disabled!"); } 
-});
-document.addEventListener("visibilitychange", () => { 
-  if (quizSubmitted) return; 
-  if (document.hidden) { 
-    tabSwitchCount++; 
-    if (tabSwitchCount >= 2) { 
-      alert("Tab switch limit reached! Quiz submitted."); 
-      submitQuiz(); 
-    } else { 
-      alert("Switching tabs not allowed. One more switch will auto-submit."); 
-    } 
-  } 
-});
-window.addEventListener("beforeunload", e => { 
-  if (quizSubmitted) return; 
-  e.preventDefault(); 
-  e.returnValue = "Your quiz will be submitted!"; 
-});
-
 async function loadQuiz() {
   const quizSnap = await getDoc(doc(db, "quizzes", quizCode));
   if (!quizSnap.exists()) { alert("Quiz not found!"); return; }
@@ -103,8 +232,6 @@ async function loadQuiz() {
   quizData = quizSnap.data();
   const allQuestions = quizData.questions || [];
   const totalAllowed = quizData.totalQuestions || allQuestions.length;
-
-  // ✅ Randomly select N questions based on totalQuestions
   const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
   quizData.questions = shuffled.slice(0, totalAllowed);
 
@@ -119,22 +246,23 @@ function showQuestion() {
   clearInterval(questionTimer);
   const q = quizData.questions[currentQuestionIndex];
   if (!q) { submitQuiz(); return; }
+
   currentQ.textContent = currentQuestionIndex + 1;
-  questionBox.innerHTML = /[;{}()=<>]/.test(q.question) 
-    ? `<pre class="question-text"><code>${q.question}</code></pre>` 
+  questionBox.innerHTML = /[;{}()=<>]/.test(q.question)
+    ? `<pre class="question-text"><code>${q.question}</code></pre>`
     : `<div class="question-text">${q.question}</div>`;
-  
+
+  const optionKeys = ["a", "b", "c", "d"].filter(k => q[k]);
+  const shuffledOptions = optionKeys.sort(() => Math.random() - 0.5);
   optionsBox.innerHTML = "";
-  ["a","b","c","d"].forEach(key => { 
-    if(q[key]) { 
-      const btn = document.createElement("button"); 
-      btn.className="btn btn-outline-dark option-btn"; 
-      btn.textContent=q[key]; 
-      btn.onclick=()=>selectOption(key); 
-      optionsBox.appendChild(btn); 
-    } 
+  shuffledOptions.forEach(key => {
+    const btn = document.createElement("button");
+    btn.className = "btn btn-outline-dark option-btn";
+    btn.textContent = q[key];
+    btn.onclick = () => selectOption(key);
+    optionsBox.appendChild(btn);
   });
-  
+
   if (answers[currentQuestionIndex]) highlightSelectedOption(answers[currentQuestionIndex]);
   remainingTime = q.timeLimit || 15;
   updateTimerUI();
@@ -147,6 +275,16 @@ function showQuestion() {
       nextQuestion(); 
     } 
   }, 1000);
+
+  if (currentQuestionIndex === quizData.questions.length - 1) {
+    nextBtn.textContent = "Submit";
+    nextBtn.classList.remove("btn-primary");
+    nextBtn.classList.add("btn-success");
+  } else {
+    nextBtn.textContent = "Next";
+    nextBtn.classList.remove("btn-success");
+    nextBtn.classList.add("btn-primary");
+  }
 }
 
 function selectOption(key) { 
@@ -155,12 +293,14 @@ function selectOption(key) {
   localStorage.setItem(`quiz_${quizCode}_answers`, JSON.stringify(answers)); 
 }
 function highlightSelectedOption(selectedKey) { 
-  ["a","b","c","d"].forEach((key,i)=>{ 
-    const btn=optionsBox.children[i]; 
-    if(!btn)return; 
-    btn.classList.remove("btn-primary","btn-outline-dark"); 
-    btn.classList.add(key===selectedKey?"btn-primary":"btn-outline-dark"); 
-  }); 
+  Array.from(optionsBox.children).forEach(btn => {
+    btn.classList.remove("btn-primary","btn-outline-dark");
+    if (btn.textContent === quizData.questions[currentQuestionIndex][selectedKey]) {
+      btn.classList.add("btn-primary");
+    } else {
+      btn.classList.add("btn-outline-dark");
+    }
+  });
 }
 function updateTimerUI() { 
   timeLeft.textContent=`${remainingTime}s`; 
@@ -204,12 +344,18 @@ async function submitQuiz() {
   await updateDoc(leaderboardRef,{ entries: arrayUnion({ name:studentName, score }) })
   .catch(async()=>{ await setDoc(leaderboardRef,{ entries:[{ name:studentName, score }] }); });
 
-  // Remove quiz from reattempts after submission
   const allowanceRef = doc(db,"quizzesAllownce",studentName);
   await updateDoc(allowanceRef,{ reattempts: arrayRemove(quizCode) });
 
   quizSubmitted = true;
-  window.location.href="takeQuiz.html";
+
+  // ✅ Show Beautiful Thank You Modal
+  const thankYouModal = new bootstrap.Modal(document.getElementById('thankYouModal'));
+  thankYouModal.show();
+
+  setTimeout(() => {
+    window.location.href = "takeQuiz.html";
+  }, 10000);
 }
 
 loadQuiz();

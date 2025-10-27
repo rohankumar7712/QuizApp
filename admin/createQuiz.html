@@ -1,216 +1,215 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Create Quiz - Admin Panel</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <style>
-      body {
-        background: #f5f9f8;
-        font-family: "Segoe UI", sans-serif;
-      }
-      .sidebar {
-        min-height: 100vh;
-        background-color: #6f42c1;
-        color: white;
-        padding: 20px 10px;
-      }
-      .sidebar h4 {
-        font-weight: bold;
-        margin-bottom: 30px;
-      }
-      .sidebar a {
-        color: white;
-        text-decoration: none;
-        display: block;
-        padding: 10px;
-        border-radius: 8px;
-        transition: background-color 0.3s ease;
-        cursor: pointer;
-      }
-      .sidebar a:hover,
-      .sidebar a.active {
-        background-color: #5a32a3;
-      }
-      .sidebar a.logout-link {
-        color: #ffcccc !important;
-      }
-      .sidebar a.logout-link:hover {
-        background-color: #c0392b;
-        color: white !important;
-      }
-      .toggle-btn {
-        display: none;
-      }
-      @media (max-width: 768px) {
-        .sidebar {
-          position: fixed;
-          width: 200px;
-          z-index: 1000;
-          transform: translateX(-100%);
-          transition: transform 0.3s ease-in-out;
-        }
-        .sidebar.show {
-          transform: translateX(0);
-        }
-        .toggle-btn {
-          display: block;
-          background-color: #6f42c1;
-          color: white;
-          border: none;
-          padding: 10px 15px;
-          margin: 10px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <button class="toggle-btn" onclick="toggleSidebar()">☰ Menu</button>
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-md-3 sidebar" id="sidebar">
-          <h4>Admin Panel</h4>
-          <a class="nav-link" href="createQuiz.html">Create Quiz</a>
-          <a class="nav-link" href="quizHistory.html">Quiz History</a>
-          <a class="nav-link" href="studentManage.html">Student Management</a>
-          <a class="nav-link" href="performance.html">Student Performance</a>
-          <a class="nav-link" href="studentAllowance.html">Student Allowance</a>
-          <hr class="text-white" />
-          <a class="nav-link logout-link" href="../index.html">Logout</a>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Create Quiz - Admin Panel</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to right, #f0f4ff, #e6f0ff);
+  margin: 0;
+  padding: 0;
+}
+
+/* Sidebar */
+.sidebar {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #6f42c1, #8e44ad);
+  color: white;
+  padding: 25px 15px;
+}
+.sidebar h4 {
+  font-weight: bold;
+  margin-bottom: 30px;
+  font-size: 1.5rem;
+}
+.sidebar a {
+  color: white;
+  display: block;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 5px;
+  transition: 0.3s;
+  font-weight: 500;
+  text-decoration: none;
+}
+.sidebar a:hover, .sidebar a.active {
+  background-color: rgba(255,255,255,0.15);
+}
+.sidebar a.logout-link {
+  color: #ffcccc !important;
+}
+.sidebar a.logout-link:hover {
+  background-color: #c0392b;
+  color: white !important;
+}
+.toggle-btn {
+  display: none;
+  font-size: 1.2rem;
+}
+
+/* Form card */
+.form-card {
+  border-radius: 16px;
+  background: linear-gradient(145deg, #ffffff, #f2f5ff);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  padding: 25px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+.form-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+}
+
+/* Buttons */
+.btn-primary {
+  background: linear-gradient(90deg, #6f42c1, #8e44ad);
+  border: none;
+  font-weight: 600;
+  transition: 0.3s;
+}
+.btn-primary:hover {
+  background: linear-gradient(90deg, #5a32a3, #6f42c1);
+}
+.btn-success, .btn-secondary {
+  font-weight: 600;
+}
+
+/* Question cards */
+.question-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+.question-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar { position: fixed; width: 220px; z-index: 1000; transform: translateX(-100%); transition: transform 0.3s ease-in-out; }
+  .sidebar.show { transform: translateX(0); }
+  .toggle-btn { display: block; background-color: #6f42c1; color: white; border: none; padding: 10px 15px; margin: 10px; border-radius: 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Toggle button for mobile -->
+<button class="toggle-btn" onclick="toggleSidebar()">☰ Menu</button>
+
+<div class="container-fluid">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-3 sidebar" id="sidebar">
+      <h4>Admin Panel</h4>
+      <a class="nav-link active" href="createQuiz.html"><i class="bi bi-plus-circle"></i> Create Quiz</a>
+      <a class="nav-link" href="quizHistory.html"><i class="bi bi-card-checklist"></i> Quiz History</a>
+      <a class="nav-link" href="studentManage.html"><i class="bi bi-people"></i> Student Management</a>
+      <a class="nav-link" href="performance.html"><i class="bi bi-bar-chart-line"></i> Student Performance</a>
+      <a class="nav-link" href="studentAllowance.html"><i class="bi bi-check2-square"></i> Student Allowance</a>
+      <hr class="text-white" />
+      <a class="nav-link logout-link" href="../index.html"><i class="bi bi-box-arrow-right"></i> Logout</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-md-9 p-4">
+      <div class="form-card">
+        <h3>Create Quiz</h3>
+        <input type="text" class="form-control mb-3" id="quizTitle" placeholder="Quiz Title" />
+
+        <div class="row mb-4">
+          <div class="col">
+            <label>Start Date</label>
+            <input type="datetime-local" class="form-control" id="startDate" />
+          </div>
+          <div class="col">
+            <label>End Date</label>
+            <input type="datetime-local" class="form-control" id="endDate" />
+          </div>
         </div>
 
-        <div class="col-md-9 p-4">
-          <h3>Create Quiz</h3>
-          <input
-            type="text"
-            class="form-control mb-3"
-            id="quizTitle"
-            placeholder="Quiz Title"
-          />
+        <div class="mb-4">
+          <label>Total Questions in Quiz</label>
+          <input type="number" class="form-control" id="totalQuestions" placeholder="e.g. 20" min="1" />
+          <small class="text-muted">Enter how many random questions will appear in the quiz for students.</small>
+        </div>
 
-          <div class="row mb-4">
-            <div class="col">
-              <label>Start Date</label>
-              <input
-                type="datetime-local"
-                class="form-control"
-                id="startDate"
-              />
-            </div>
-            <div class="col">
-              <label>End Date</label>
-              <input type="datetime-local" class="form-control" id="endDate" />
-            </div>
-          </div>
+        <h5>Manual Entry</h5>
+        <div class="mb-3">
+          <button class="btn btn-primary me-2" id="addQuestionBtn"><i class="bi bi-plus"></i> Add Question</button>
+          <button class="btn btn-success" id="saveQuizBtn"><i class="bi bi-save"></i> Save & Generate Code</button>
+        </div>
 
-          <div class="mb-4">
-            <label for="totalQuestions" class="form-label"
-              >Total Questions in Quiz</label
-            >
-            <input
-              type="number"
-              class="form-control"
-              id="totalQuestions"
-              placeholder="e.g. 20"
-              min="1"
-            />
-            <small class="text-muted"
-              >Enter how many random questions will appear in the quiz for
-              students.</small
-            >
-          </div>
+        <div id="questions"></div>
 
-          <h5>Manual Entry</h5>
-          <div class="mb-3">
-            <button class="btn btn-primary me-2" id="addQuestionBtn">
-              Add Question
-            </button>
-            <button class="btn btn-success" id="saveQuizBtn">
-              Save & Generate Code
-            </button>
-          </div>
+        <hr />
 
-          <div id="questions"></div>
-
-          <hr />
-          <h5>Text Format Input</h5>
-          <textarea
-            class="form-control mb-2"
-            id="textFormatInput"
-            rows="8"
-            placeholder="Enter questions here with format: 
+        <h5>Text Format Input</h5>
+        <textarea class="form-control mb-2" id="textFormatInput" rows="8" placeholder="Enter questions in format: 
 Question 1:
 a) Option A
 b) Option B
 c) Option C
 d) Option D
-Answer: a"
-          ></textarea>
-          <button class="btn btn-secondary" id="parseTextBtn">
-            Parse Text
-          </button>
-          <p id="saveMsg" class="mt-2 text-success text-center"></p>
-        </div>
+Answer: a"></textarea>
+        <button class="btn btn-secondary" id="parseTextBtn"><i class="bi bi-file-earmark-text"></i> Parse Text</button>
+        <p id="saveMsg" class="mt-2 text-success text-center"></p>
       </div>
     </div>
+  </div>
+</div>
 
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-      import {
-        getFirestore,
-        collection,
-        setDoc,
-        doc,
-        getDoc,
-      } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+<script type="module">
+// ===== Firebase Setup =====
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { getFirestore, collection, setDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyC_lvF65P7vaKYnKEMrpHfJroMe-vh3w4U",
-        authDomain: "quizapp-f370d.firebaseapp.com",
-        projectId: "quizapp-f370d",
-        storageBucket: "quizapp-f370d.appspot.com",
-        messagingSenderId: "822956185807",
-        appId: "1:822956185807:web:3d2244d53f9bb61ec33fba",
-      };
+const firebaseConfig = {
+  apiKey: "AIzaSyC_lvF65P7vaKYnKEMrpHfJroMe-vh3w4U",
+  authDomain: "quizapp-f370d.firebaseapp.com",
+  projectId: "quizapp-f370d",
+  storageBucket: "quizapp-f370d.appspot.com",
+  messagingSenderId: "822956185807",
+  appId: "1:822956185807:web:3d2244d53f9bb61ec33fba"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
+// ===== DOM Elements =====
+const quizTitle = document.getElementById("quizTitle");
+const startDate = document.getElementById("startDate");
+const endDate = document.getElementById("endDate");
+const questionsDiv = document.getElementById("questions");
+const saveMsg = document.getElementById("saveMsg");
+const parseBtn = document.getElementById("parseTextBtn");
+const textInput = document.getElementById("textFormatInput");
+const addQBtn = document.getElementById("addQuestionBtn");
+const saveQBtn = document.getElementById("saveQuizBtn");
 
-      const quizTitle = document.getElementById("quizTitle");
-      const startDate = document.getElementById("startDate");
-      const endDate = document.getElementById("endDate");
-      const questionsDiv = document.getElementById("questions");
-      const saveMsg = document.getElementById("saveMsg");
-      const parseBtn = document.getElementById("parseTextBtn");
-      const textInput = document.getElementById("textFormatInput");
-      const addQBtn = document.getElementById("addQuestionBtn");
-      const saveQBtn = document.getElementById("saveQuizBtn");
+let parsedQuestions = [];
 
-      let parsedQuestions = [];
+// ===== Add Question Button =====
+addQBtn.addEventListener("click", () => {
+  parsedQuestions.push({ question:"", a:"", b:"", c:"", d:"", correct:"a", timeLimit:30 });
+  renderQuestions();
+});
 
-      addQBtn.addEventListener("click", () => {
-        parsedQuestions.push({
-          question: "",
-          a: "",
-          b: "",
-          c: "",
-          d: "",
-          correct: "a",
-          timeLimit: 30,
-        });
-        renderQuestions();
-      });
-
-      function renderQuestions() {
-        questionsDiv.innerHTML = "";
-        parsedQuestions.forEach((q, idx) => {
-          const card = document.createElement("div");
-          card.className = "card mb-3 p-3";
-          card.innerHTML = `
+// ===== Render Questions =====
+function renderQuestions() {
+  questionsDiv.innerHTML = "";
+  parsedQuestions.forEach((q, idx) => {
+    const card = document.createElement("div");
+    card.className = "question-card";
+    card.innerHTML = `
       <label>Question ${idx + 1}</label>
       <textarea class="form-control mb-2" rows="4" placeholder="Enter question"></textarea>
       <input type="text" class="form-control mb-2" placeholder="Option A">
@@ -227,170 +226,91 @@ Answer: a"
       <label>Time Limit (seconds):</label>
       <input type="number" class="form-control" value="30">
     `;
-
-          const inputs = card.querySelectorAll("input, select, textarea");
-          inputs[0].value = q.question;
-          inputs[1].value = q.a;
-          inputs[2].value = q.b;
-          inputs[3].value = q.c;
-          inputs[4].value = q.d;
-          inputs[5].value = q.correct;
-          inputs[6].value = q.timeLimit;
-
-          inputs[0].addEventListener(
-            "input",
-            (e) => (q.question = e.target.value)
-          );
-          inputs[1].addEventListener("input", (e) => (q.a = e.target.value));
-          inputs[2].addEventListener("input", (e) => (q.b = e.target.value));
-          inputs[3].addEventListener("input", (e) => (q.c = e.target.value));
-          inputs[4].addEventListener("input", (e) => (q.d = e.target.value));
-          inputs[5].addEventListener(
-            "change",
-            (e) => (q.correct = e.target.value)
-          );
-          inputs[6].addEventListener(
-            "input",
-            (e) => (q.timeLimit = Number(e.target.value))
-          );
-
-          questionsDiv.appendChild(card);
-        });
-      }
-
-      parseBtn.addEventListener("click", () => {
-  const inputText = textInput.value.trim();
-  const blocks = inputText.split(/\n(?=Question\s*\d*\s*:)/).map(b => b.trim()).filter(b => b);
-
-  parsedQuestions = [];
-
-  blocks.forEach(block => {
-    const lines = block.split("\n").map(l => l.trim()).filter(l => l);
-    if (lines.length === 0) return;
-
-    // Find question line
-    const questionLineIndex = lines.findIndex(l => /^Question\s*\d*\s*:/.test(l));
-    if (questionLineIndex === -1) return;
-
-    // Everything from question line up to first option is the question
-    let optionStartIndex = lines.findIndex(l => /^[abcd]\)/i.test(l));
-    if (optionStartIndex === -1) optionStartIndex = lines.findIndex(l => /^Answer\s*:/i.test(l));
-    if (optionStartIndex === -1) optionStartIndex = lines.length;
-
-    const questionTextLines = lines.slice(questionLineIndex, optionStartIndex);
-    const questionText = questionTextLines.join("\n").replace(/^Question\s*\d*\s*:/, "").trim();
-
-    // Options
-    const a = (lines.find(l => /^a\)/i.test(l)) || "").replace(/^a\)\s*/i, "");
-    const b = (lines.find(l => /^b\)/i.test(l)) || "").replace(/^b\)\s*/i, "");
-    const c = (lines.find(l => /^c\)/i.test(l)) || "").replace(/^c\)\s*/i, "");
-    const d = (lines.find(l => /^d\)/i.test(l)) || "").replace(/^d\)\s*/i, "");
-
-    // Correct answer
-    const answerLine = lines.find(l => /^Answer\s*:/i.test(l));
-    const answer = answerLine ? answerLine.replace(/^Answer\s*:/i, "").trim().toLowerCase() : "a";
-
-    parsedQuestions.push({
-      question: questionText,
-      a,
-      b,
-      c,
-      d,
-      correct: ["a","b","c","d"].includes(answer) ? answer : "a",
-      timeLimit: 20
-    });
+    const inputs = card.querySelectorAll("input, select, textarea");
+    [q.question, q.a, q.b, q.c, q.d, q.correct, q.timeLimit].forEach((val,i)=>inputs[i].value=val);
+    inputs[0].addEventListener("input", e=>q.question=e.target.value);
+    inputs[1].addEventListener("input", e=>q.a=e.target.value);
+    inputs[2].addEventListener("input", e=>q.b=e.target.value);
+    inputs[3].addEventListener("input", e=>q.c=e.target.value);
+    inputs[4].addEventListener("input", e=>q.d=e.target.value);
+    inputs[5].addEventListener("change", e=>q.correct=e.target.value);
+    inputs[6].addEventListener("input", e=>q.timeLimit=Number(e.target.value));
+    questionsDiv.appendChild(card);
   });
+}
 
-  if(parsedQuestions.length === 0) {
-    alert("No valid questions found. Check your format.");
-  } else {
-    renderQuestions();
-    alert(`${parsedQuestions.length} questions parsed successfully.`);
-  }
+// ===== Parse Text Input =====
+parseBtn.addEventListener("click", ()=>{
+  const inputText = textInput.value.trim();
+  const blocks = inputText.split(/\n(?=Question\s*\d*\s*:)/).map(b=>b.trim()).filter(b=>b);
+  parsedQuestions = [];
+  blocks.forEach(block=>{
+    const lines = block.split("\n").map(l=>l.trim()).filter(l=>l);
+    if(lines.length===0) return;
+    const qIndex = lines.findIndex(l=>/^Question\s*\d*\s*:/.test(l));
+    if(qIndex===-1) return;
+    let optionStart = lines.findIndex(l=>/^[abcd]\)/i.test(l));
+    if(optionStart===-1) optionStart=lines.findIndex(l=>/^Answer\s*:/i.test(l));
+    if(optionStart===-1) optionStart=lines.length;
+    const questionText = lines.slice(qIndex,optionStart).join("\n").replace(/^Question\s*\d*\s*:/,"").trim();
+    const a = (lines.find(l=>/^a\)/i.test(l))||"").replace(/^a\)\s*/i,"");
+    const b = (lines.find(l=>/^b\)/i.test(l))||"").replace(/^b\)\s*/i,"");
+    const c = (lines.find(l=>/^c\)/i.test(l))||"").replace(/^c\)\s*/i,"");
+    const d = (lines.find(l=>/^d\)/i.test(l))||"").replace(/^d\)\s*/i,"");
+    const ansLine = lines.find(l=>/^Answer\s*:/i.test(l));
+    const answer = ansLine ? ansLine.replace(/^Answer\s*:/i,"").trim().toLowerCase():"a";
+    parsedQuestions.push({question:questionText,a,b,c,d,correct:["a","b","c","d"].includes(answer)?answer:"a",timeLimit:20});
+  });
+  if(parsedQuestions.length===0) alert("No valid questions found. Check format.");
+  else { renderQuestions(); alert(`${parsedQuestions.length} questions parsed successfully.`);}
 });
 
+// ===== Generate Quiz Code =====
+function generateQuizCode(length=6){
+  const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  return Array.from({length},()=>chars[Math.floor(Math.random()*chars.length)]).join("");
+}
 
-      function generateQuizCode(length = 6) {
-        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        return Array.from(
-          { length },
-          () => chars[Math.floor(Math.random() * chars.length)]
-        ).join("");
-      }
+// ===== Save Quiz =====
+saveQBtn.addEventListener("click", async ()=>{
+  const totalQuestions = parseInt(document.getElementById("totalQuestions").value);
+  if(!quizTitle.value||!startDate.value||!endDate.value||parsedQuestions.length===0||!totalQuestions){
+    alert("Fill all fields and add at least one question."); return;
+  }
+  if(totalQuestions>parsedQuestions.length){alert("Total quiz questions cannot exceed inserted questions."); return;}
+  const editId = localStorage.getItem("editQuizId");
+  const quizCode = editId||generateQuizCode();
+  const quiz = {quizCode,title:quizTitle.value,startAt:startDate.value,endAt:endDate.value,totalQuestions,questions:parsedQuestions,createdAt:new Date().toISOString()};
+  try{
+    await setDoc(doc(db,"quizzes",quizCode),quiz);
+    saveMsg.textContent = `Quiz ${editId?"updated":"saved"} successfully! Code: ${quizCode}`;
+    if(editId) localStorage.removeItem("editQuizId");
+    setTimeout(()=>window.location.reload(),1000);
+  }catch(err){console.error(err);alert("Error saving quiz!");}
+});
 
-      saveQBtn.addEventListener("click", async () => {
-        const totalQuestionsInput = document.getElementById("totalQuestions");
-        const totalQuestions = parseInt(totalQuestionsInput.value);
+// ===== Load Quiz for Editing =====
+window.onload = async ()=>{
+  const editId = localStorage.getItem("editQuizId");
+  if(editId){
+    try{
+      const docSnap = await getDoc(doc(db,"quizzes",editId));
+      if(docSnap.exists()){
+        const quiz = docSnap.data();
+        quizTitle.value=quiz.title;
+        startDate.value=quiz.startAt;
+        endDate.value=quiz.endAt;
+        document.getElementById("totalQuestions").value=quiz.totalQuestions||"";
+        parsedQuestions=quiz.questions||[];
+        renderQuestions();
+      }else{alert("Quiz not found!");}
+    }catch(err){console.error(err);}
+  }
+};
 
-        if (
-          !quizTitle.value ||
-          !startDate.value ||
-          !endDate.value ||
-          parsedQuestions.length === 0 ||
-          !totalQuestions
-        ) {
-          alert(
-            "Please fill all fields, add at least one question, and enter total questions for quiz."
-          );
-          return;
-        }
-
-        if (totalQuestions > parsedQuestions.length) {
-          alert(
-            "Total quiz questions cannot be more than total inserted questions!"
-          );
-          return;
-        }
-
-        const editId = localStorage.getItem("editQuizId");
-        const quizCode = editId || generateQuizCode();
-
-        const quiz = {
-          quizCode,
-          title: quizTitle.value,
-          startAt: startDate.value,
-          endAt: endDate.value,
-          totalQuestions,
-          questions: parsedQuestions,
-          createdAt: new Date().toISOString(),
-        };
-
-        try {
-          await setDoc(doc(db, "quizzes", quizCode), quiz);
-          saveMsg.textContent = `Quiz ${editId ? "updated" : "saved"} successfully! Code: ${quizCode}`;
-          if (editId) localStorage.removeItem("editQuizId");
-          setTimeout(() => window.location.reload(), 1000);
-        } catch (err) {
-          console.error(err);
-          alert("Error saving quiz!");
-        }
-      });
-
-      window.onload = async () => {
-        const editId = localStorage.getItem("editQuizId");
-        if (editId) {
-          try {
-            const docSnap = await getDoc(doc(db, "quizzes", editId));
-            if (docSnap.exists()) {
-              const quiz = docSnap.data();
-              quizTitle.value = quiz.title;
-              startDate.value = quiz.startAt;
-              endDate.value = quiz.endAt;
-              document.getElementById("totalQuestions").value = quiz.totalQuestions || "";
-              parsedQuestions = quiz.questions || [];
-              renderQuestions();
-            } else {
-              alert("Quiz not found!");
-            }
-          } catch (error) {
-            console.error("Error fetching quiz for editing:", error);
-          }
-        }
-      };
-
-      function toggleSidebar() {
-        document.getElementById("sidebar").classList.toggle("show");
-      }
-    </script>
-  </body>
+// ===== Sidebar Toggle =====
+function toggleSidebar(){document.getElementById("sidebar").classList.toggle("show");}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>

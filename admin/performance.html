@@ -1,88 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Student Performance - Admin Panel</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      background: #f5f9f8;
-      font-family: 'Segoe UI', sans-serif;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Student Performance - Admin Panel</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to right, #f0f4ff, #e6f0ff);
+  margin: 0;
+  padding: 0;
+}
 
-    .sidebar {
-      min-height: 100vh;
-      background-color: #6f42c1;
-      color: white;
-      padding: 20px 10px;
-    }
+/* Sidebar */
+.sidebar {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #6f42c1, #8e44ad);
+  color: white;
+  padding: 25px 15px;
+}
+.sidebar h4 {
+  font-weight: bold;
+  margin-bottom: 30px;
+  font-size: 1.5rem;
+}
+.sidebar a {
+  color: white;
+  display: block;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 5px;
+  transition: 0.3s;
+  font-weight: 500;
+  text-decoration: none;
+}
+.sidebar a:hover, .sidebar a.active {
+  background-color: rgba(255,255,255,0.15);
+}
+.sidebar a.logout-link {
+  color: #ffcccc !important;
+}
+.sidebar a.logout-link:hover {
+  background-color: #c0392b;
+  color: white !important;
+}
+.toggle-btn {
+  display: none;
+  font-size: 1.2rem;
+}
 
-    .sidebar h4 {
-      font-weight: bold;
-      margin-bottom: 30px;
-    }
+/* Cards */
+.card-quiz {
+  border-radius: 16px;
+  background: linear-gradient(145deg, #ffffff, #f2f5ff);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  padding: 20px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+.card-quiz:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+}
+.card-quiz h5 {
+  font-weight: 600;
+}
+.card-quiz p {
+  color: #6c757d;
+  font-size: 0.95rem;
+}
+.btn-purple {
+  background: linear-gradient(90deg, #6f42c1, #8e44ad);
+  color: white;
+  font-weight: 600;
+  border: none;
+  transition: 0.3s;
+}
+.btn-purple:hover {
+  background: linear-gradient(90deg, #5a32a3, #6f42c1);
+}
 
-    .sidebar a {
-      color: white;
-      text-decoration: none;
-      display: block;
-      padding: 10px;
-      border-radius: 8px;
-      transition: background-color 0.3s ease;
-      cursor: pointer;
-    }
+/* Table */
+.table thead {
+  background: #f2f2ff;
+}
+.table tbody tr:hover {
+  background-color: #f9f9ff;
+}
 
-    .sidebar a:hover,
-    .sidebar a.active {
-      background-color: #5a32a3;
-    }
-
-    .sidebar a.logout-link {
-      color: #ffcccc !important;
-    }
-
-    .sidebar a.logout-link:hover {
-      background-color: #c0392b;
-      color: white !important;
-    }
-
-    .btn-purple {
-      background: #6f42c1;
-      color: white;
-    }
-
-    .btn-purple:hover {
-      background: #5a32a3;
-    }
-
-    .toggle-btn {
-      display: none;
-    }
-
-    @media (max-width: 768px) {
-      .sidebar {
-        position: fixed;
-        width: 200px;
-        z-index: 1000;
-        transform: translateX(-100%);
-        transition: transform 0.3s ease-in-out;
-      }
-
-      .sidebar.show {
-        transform: translateX(0);
-      }
-
-      .toggle-btn {
-        display: block;
-        background-color: #6f42c1;
-        color: white;
-        border: none;
-        padding: 10px 15px;
-        margin: 10px;
-      }
-    }
-  </style>
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar { position: fixed; width: 220px; z-index: 1000; transform: translateX(-100%); transition: transform 0.3s ease-in-out; }
+  .sidebar.show { transform: translateX(0); }
+  .toggle-btn { display: block; background-color: #6f42c1; color: white; border: none; padding: 10px 15px; margin: 10px; border-radius: 8px; }
+}
+</style>
 </head>
 <body>
 
@@ -94,165 +108,136 @@
     <!-- Sidebar -->
     <div class="col-md-3 sidebar" id="sidebar">
       <h4>Admin Panel</h4>
-      <a class="nav-link" href="createQuiz.html">Create Quiz</a>
-      <a class="nav-link" href="quizHistory.html">Quiz History</a>
-      <a class="nav-link" href="studentManage.html">Student Management</a>
-      <a class="nav-link active" href="performance.html">Student Performance</a>
-      <a class="nav-link" href="studentAllowance.html">Student Allowance</a>
-
+      <a class="nav-link" href="createQuiz.html"><i class="bi bi-plus-circle"></i> Create Quiz</a>
+      <a class="nav-link" href="quizHistory.html"><i class="bi bi-card-checklist"></i> Quiz History</a>
+      <a class="nav-link" href="studentManage.html"><i class="bi bi-people"></i> Student Management</a>
+      <a class="nav-link active" href="performance.html"><i class="bi bi-bar-chart-line"></i> Student Performance</a>
+      <a class="nav-link" href="studentAllowance.html"><i class="bi bi-check2-square"></i> Student Allowance</a>
       <hr class="text-white">
-      <a class="nav-link logout-link" href="../index.html">Logout</a>
+      <a class="nav-link logout-link" href="../index.html"><i class="bi bi-box-arrow-right"></i> Logout</a>
     </div>
 
     <!-- Main content -->
     <div class="col-md-9 p-4">
       <h3 class="mb-4">Student Performance</h3>
-      <p>Review student scores, average, highest and lowest marks.</p>
-      <!-- Placeholder for performance list -->
+      <p>Review student scores, averages, highest and lowest marks.</p>
+
+      <!-- Performance list -->
       <div id="performanceTable" class="mt-3">
-        <p class="text-muted">Student performance data will appear here...</p>
+        <p class="text-muted">Loading student performance data...</p>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-  function toggleSidebar() {
-    document.getElementById("sidebar").classList.toggle("show");
-  }
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("show");
+}
 </script>
-
-<!-- 👇 Keep everything above unchanged until <script type="module"> -->
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-  import {
-    getFirestore,
-    collection,
-    getDoc,
-    getDocs,
-    doc,
-    setDoc
-  } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { getFirestore, collection, getDoc, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyC_lvF65P7vaKYnKEMrpHfJroMe-vh3w4U",
-    authDomain: "quizapp-f370d.firebaseapp.com",
-    projectId: "quizapp-f370d",
-    storageBucket: "quizapp-f370d.appspot.com",
-    messagingSenderId: "822956185807",
-    appId: "1:822956185807:web:3d2244d53f9bb61ec33fba"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyC_lvF65P7vaKYnKEMrpHfJroMe-vh3w4U",
+  authDomain: "quizapp-f370d.firebaseapp.com",
+  projectId: "quizapp-f370d",
+  storageBucket: "quizapp-f370d.appspot.com",
+  messagingSenderId: "822956185807",
+  appId: "1:822956185807:web:3d2244d53f9bb61ec33fba"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-  const performanceTable = document.getElementById("performanceTable");
+const performanceTable = document.getElementById("performanceTable");
 
-  async function loadAllQuizzes() {
-    const quizSnapshot = await getDocs(collection(db, "quizzes"));
-    performanceTable.innerHTML = "";
+async function loadAllQuizzes() {
+  const quizSnapshot = await getDocs(collection(db, "quizzes"));
+  performanceTable.innerHTML = "";
 
-    quizSnapshot.forEach(quizDoc => {
-      const quiz = quizDoc.data();
-      const quizCode = quiz.quizCode || quizDoc.id;
-      const quizTitle = quiz.title;
+  quizSnapshot.forEach(quizDoc => {
+    const quiz = quizDoc.data();
+    const quizCode = quiz.quizCode || quizDoc.id;
+    const quizTitle = quiz.title;
 
-      const quizCard = document.createElement("div");
-      quizCard.classList.add("card", "mb-3");
-      quizCard.innerHTML = `
-        <div class="card-body">
-          <h5 class="card-title">${quizTitle}</h5>
-          <p><strong>Quiz Code:</strong> ${quizCode}</p>
-          <button class="btn btn-sm btn-purple" onclick="toggleStudentList('${quizCode}', this)">Show</button>
-          <div class="student-list mt-3" id="students-${quizCode}" style="display: none;"></div>
-        </div>
-      `;
+    const quizCard = document.createElement("div");
+    quizCard.classList.add("card-quiz");
+    quizCard.innerHTML = `
+      <h5>${quizTitle}</h5>
+      <p><strong>Quiz Code:</strong> ${quizCode}</p>
+      <button class="btn btn-sm btn-purple" onclick="toggleStudentList('${quizCode}', this)">Show Students</button>
+      <div class="student-list mt-3" id="students-${quizCode}" style="display: none;"></div>
+    `;
 
-      performanceTable.appendChild(quizCard);
-    });
-  }
+    performanceTable.appendChild(quizCard);
+  });
+}
 
-  window.toggleStudentList = async function (quizCode, btn) {
-    const container = document.getElementById(`students-${quizCode}`);
-    if (container.style.display === "none") {
-      btn.textContent = "Hide";
-      container.style.display = "block";
+window.toggleStudentList = async function (quizCode, btn) {
+  const container = document.getElementById(`students-${quizCode}`);
+  if (container.style.display === "none") {
+    btn.textContent = "Hide Students";
+    container.style.display = "block";
 
-      if (!container.hasChildNodes()) {
-        const leaderboardDocRef = doc(db, "leaderboards", quizCode);
-        const leaderboardDoc = await getDoc(leaderboardDocRef);
-
-        if (!leaderboardDoc.exists()) {
-          container.innerHTML = `<p class="text-muted">No leaderboard data found.</p>`;
-          return;
-        }
-
-        const entries = leaderboardDoc.data().entries || [];
-
-        if (entries.length === 0) {
-          container.innerHTML = `<p class="text-muted">No student scores recorded yet.</p>`;
-          return;
-        }
-
-        const resultAccessRef = doc(db, "resultAccess", quizCode);
-        const resultAccessSnap = await getDoc(resultAccessRef);
-        const accessData = resultAccessSnap.exists() ? resultAccessSnap.data() : {};
-
-        const table = document.createElement("table");
-        table.className = "table table-bordered table-sm";
-        table.innerHTML = `
-          <thead class="table-light">
-            <tr>
-              <th>Name</th>
-              <th>Score</th>
-              <th>Review</th>
-              <th>Show Result</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${entries.map(entry => {
-              const isChecked = accessData[entry.name]?.allow ? "checked" : "";
-              return `
-              <tr>
-                <td>${entry.name || 'N/A'}</td>
-                <td>${entry.score ?? '-'}</td>
-                <td>
-                  <a href="review.html?code=${quizCode}&student=${encodeURIComponent(entry.name)}"
-                     class="btn btn-sm btn-outline-primary">Review</a>
-                </td>
-                <td>
-                  <div class="form-check form-switch">
-                    <input class="form-check-input"
-                      type="checkbox"
-                      ${isChecked}
-                      onchange="toggleResultAccess('${quizCode}', '${entry.name}', this.checked)">
-                  </div>
-                </td>
-              </tr>`;
-            }).join("")}
-          </tbody>
-        `;
-        container.appendChild(table);
+    if (!container.hasChildNodes()) {
+      const leaderboardDoc = await getDoc(doc(db, "leaderboards", quizCode));
+      if (!leaderboardDoc.exists()) {
+        container.innerHTML = `<p class="text-muted">No leaderboard data found.</p>`;
+        return;
       }
-    } else {
-      btn.textContent = "Show";
-      container.style.display = "none";
+      const entries = leaderboardDoc.data().entries || [];
+      if (entries.length === 0) {
+        container.innerHTML = `<p class="text-muted">No student scores recorded yet.</p>`;
+        return;
+      }
+
+      const table = document.createElement("table");
+      table.className = "table table-bordered table-sm";
+      table.innerHTML = `
+        <thead class="table-light">
+          <tr>
+            <th>Name</th>
+            <th>Score</th>
+            <th>Review</th>
+            <th>Show Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${entries.map(entry => `
+            <tr>
+              <td>${entry.name || 'N/A'}</td>
+              <td>${entry.score ?? '-'}</td>
+              <td>
+                <a href="review.html?code=${quizCode}&student=${encodeURIComponent(entry.name)}" class="btn btn-sm btn-outline-primary">Review</a>
+              </td>
+              <td>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" onchange="toggleResultAccess('${quizCode}','${entry.name}',this.checked)">
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      `;
+      container.appendChild(table);
     }
-  };
+  } else {
+    btn.textContent = "Show Students";
+    container.style.display = "none";
+  }
+};
 
-  window.toggleResultAccess = async function (quizCode, studentName, allowed) {
-    const accessRef = doc(db, "resultAccess", quizCode);
-    await setDoc(accessRef, {
-      [studentName]: { allow: allowed }
-    }, { merge: true });
-    console.log(`Result access for ${studentName} in ${quizCode} set to ${allowed}`);
-  };
+window.toggleResultAccess = async function (quizCode, studentName, allowed) {
+  const accessRef = doc(db, "resultAccess", quizCode);
+  await setDoc(accessRef, { [studentName]: { allow: allowed } }, { merge: true });
+  console.log(`Result access for ${studentName} in ${quizCode} set to ${allowed}`);
+};
 
-  loadAllQuizzes();
+loadAllQuizzes();
 </script>
-
-
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

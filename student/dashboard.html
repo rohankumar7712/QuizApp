@@ -1,64 +1,263 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Dashboard</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body { background: #f5f9f8; font-family: 'Segoe UI', sans-serif; }
-    .sidebar { min-height: 100vh; background-color: #6f42c1; color: white; padding: 20px 10px; }
-    .sidebar h4 { font-weight: bold; margin-bottom: 30px; }
-    .sidebar a { color: white; text-decoration: none; display: block; padding: 10px; border-radius: 8px; transition: background-color 0.3s ease; cursor: pointer; }
-    .sidebar a:hover, .sidebar a.active { background-color: #5a32a3; }
-    .sidebar a.logout-link { color: #ffcccc !important; }
-    .sidebar a.logout-link:hover { background-color: #c0392b; color: white !important; }
-    .toggle-btn { display: none; }
-    @media (max-width: 768px) {
-      .sidebar { position: fixed; width: 200px; z-index: 1000; transform: translateX(-100%); transition: transform 0.3s ease-in-out; }
-      .sidebar.show { transform: translateX(0); }
-      .toggle-btn { display: block; background-color: #6f42c1; color: white; border: none; padding: 10px 15px; margin: 10px; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to right, #f0f4ff, #e6f0ff);
+  margin: 0;
+  padding: 0;
+}
+
+/* Sidebar */
+.sidebar {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #6f42c1, #8e44ad);
+  color: white;
+  padding: 20px;
+}
+.sidebar h4 { font-weight: bold; margin-bottom: 30px; font-size: 1.5rem; }
+.sidebar a {
+  color: white;
+  text-decoration: none;
+  display: block;
+  padding: 12px;
+  border-radius: 10px;
+  transition: 0.3s;
+  font-weight: 500;
+}
+.sidebar a:hover, .sidebar a.active { background-color: rgba(255,255,255,0.15); }
+.sidebar a.logout-link { color: #ffcccc !important; }
+.sidebar a.logout-link:hover { background-color: #c0392b; color: white !important; }
+.toggle-btn { display: none; font-size: 1.2rem; }
+
+/* Stats Cards */
+.stats-card {
+  border-radius: 16px;
+  background: linear-gradient(145deg, #ffffff, #f2f5ff);
+  text-align: center;
+  padding: 20px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  transition: transform 0.3s;
+}
+.stats-card:hover { transform: translateY(-5px); }
+.stats-card h5 { font-weight: 600; margin-bottom: 10px; }
+.stats-card p { font-size: 1.5rem; font-weight: bold; margin: 0; }
+
+/* Rank Toggle */
+.rank-toggle { display: flex; gap: 10px; margin: 10px 0; }
+.rank-toggle button { flex: 1; font-weight: 500; }
+
+/* Activity Heatmap */
+.activity-square-year {
+  width: 12px; height: 12px; border-radius: 3px; margin: 1px;
+  background-color: #e0e0e0;
+  cursor: default; transition: background-color 0.3s;
+}
+.activity-square-year[data-count="1"] { background-color: #a8d5a2; }
+.activity-square-year[data-count="2"] { background-color: #6cc070; }
+.activity-square-year[data-count="3"] { background-color: #28a745; }
+.activity-square-year[data-count="4"] { background-color: #1e7e34; }
+.activity-square-year[data-count="5"] { background-color: #145a22; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar { position: fixed; width: 220px; z-index: 1000; transform: translateX(-100%); transition: transform 0.3s ease-in-out; }
+  .sidebar.show { transform: translateX(0); }
+  .toggle-btn { display: block; background-color: #6f42c1; color: white; border: none; padding: 10px 15px; margin: 10px; border-radius: 8px; }
+}
+</style>
 </head>
 <body>
 
-<!-- Toggle button for mobile -->
 <button class="toggle-btn" onclick="toggleSidebar()">☰ Menu</button>
-
 <div class="container-fluid">
   <div class="row">
     <!-- Sidebar -->
     <div class="col-md-3 sidebar" id="sidebar">
       <h4>Student Panel</h4>
-      <a class="nav-link" href="dashboard.html">Dashboard</a>
+      <a class="nav-link active" href="dashboard.html">Dashboard</a>
       <a class="nav-link" href="takeQuiz.html">Take Quiz</a>
       <a class="nav-link" href="history.html">Quiz History</a>
-
       <hr class="text-white">
       <a class="nav-link logout-link" href="../index.html" onclick="logout()">Logout</a>
     </div>
 
-    <!-- Main content -->
+    <!-- Main Content -->
     <div class="col-md-9 p-4">
-      <h3>Welcome, <span id="studentName">Student</span>!</h3>
-      <p>Select an option from the sidebar to get started with your quizzes.</p>
+      <h3 class="mb-3">Welcome, <span id="studentName">Student</span>!</h3>
+
+      <!-- Student Stats Section -->
+      <div class="row g-4" id="statsSection">
+        <div class="col-md-3">
+          <div class="stats-card">
+            <h5>Total Quizzes</h5>
+            <p id="totalQuizzes">0</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stats-card">
+            <h5>Quizzes Completed</h5>
+            <p id="completedQuizzes">0</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stats-card">
+            <h5>Average Score</h5>
+            <p id="averageScore">0%</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stats-card">
+            <h5>Current Position</h5>
+            <p id="studentRank">N/A</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rank Toggle -->
+      <div class="rank-toggle">
+        <button class="btn btn-outline-primary" id="btnByMarks">By Marks</button>
+        <button class="btn btn-outline-secondary" id="btnByQuizzes">By Quizzes Completed</button>
+      </div>
+
+      <!-- Activity Heatmap -->
+      <div class="row g-4 mt-4">
+        <div class="col-12">
+          <div class="stats-card">
+            <h5>Activity Overview (Last 12 Months)</h5>
+            <div id="activityYearGrid" style="display:flex; flex-wrap: wrap;"></div>
+            <p class="mt-2 text-muted" style="font-size:0.85rem;">Darker green = more quizzes completed that day, gray = no activity</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<script>
-  const studentName = localStorage.getItem("studentName") || "Student";
-  document.getElementById("studentName").textContent = studentName;
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-  function toggleSidebar() {
-    document.getElementById("sidebar").classList.toggle("show");
+const firebaseConfig = {
+  apiKey: "AIzaSyC_lvF65P7vaKYnKEMrpHfJroMe-vh3w4U",
+  authDomain: "quizapp-f370d.firebaseapp.com",
+  projectId: "quizapp-f370d",
+  storageBucket: "quizapp-f370d.appspot.com",
+  messagingSenderId: "822956185807",
+  appId: "1:822956185807:web:3d2244d53f9bb61ec33fba"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const studentName = localStorage.getItem("studentName");
+if (!studentName) { alert("Not logged in"); window.location = "../index.html"; }
+document.getElementById("studentName").textContent = studentName;
+
+function toggleSidebar() { document.getElementById("sidebar").classList.toggle("show"); }
+function logout() { localStorage.removeItem("studentId"); localStorage.removeItem("studentName"); window.location = "../index.html"; }
+
+let rankMode = 'marks'; // default
+
+document.getElementById("btnByMarks").addEventListener("click", () => { rankMode = 'marks'; computeRank(); });
+document.getElementById("btnByQuizzes").addEventListener("click", () => { rankMode = 'quizzes'; computeRank(); });
+
+async function loadStudentStats() {
+  const quizzesSnap = await getDocs(collection(db, "quizzes"));
+  const totalQuizzes = quizzesSnap.size;
+  document.getElementById("totalQuizzes").textContent = totalQuizzes;
+
+  let completed = 0, totalScore = 0;
+  for (const quizDoc of quizzesSnap.docs) {
+    const code = quizDoc.id;
+    const reviewSnap = await getDoc(doc(db, `review_${code}`, studentName));
+    if (reviewSnap.exists()) {
+      completed++;
+      totalScore += reviewSnap.data().score || 0;
+    }
   }
 
-  function logout() {
-    localStorage.removeItem("studentId");
-    localStorage.removeItem("studentName");
+  document.getElementById("completedQuizzes").textContent = completed;
+  document.getElementById("averageScore").textContent = completed ? Math.round(totalScore / completed) + "%" : "0%";
+
+  renderYearActivity(quizzesSnap);
+  computeRank();
+}
+
+async function computeRank() {
+  const studentsSnap = await getDocs(collection(db, "students"));
+  const studentScores = [];
+
+  for (const studentDoc of studentsSnap.docs) {
+    const sName = studentDoc.data().name;
+    let totalScore = 0, completed = 0;
+
+    const quizzesSnap = await getDocs(collection(db, "quizzes"));
+    for (const quizDoc of quizzesSnap.docs) {
+      const reviewSnap = await getDoc(doc(db, `review_${quizDoc.id}`, sName));
+      if (reviewSnap.exists()) {
+        completed++;
+        totalScore += reviewSnap.data().score || 0;
+      }
+    }
+    studentScores.push({ name: sName, totalScore, completed });
   }
+
+  // Sort based on current mode
+  if (rankMode === 'marks') studentScores.sort((a,b) => b.totalScore - a.totalScore);
+  else studentScores.sort((a,b) => b.completed - a.completed);
+
+  const position = studentScores.findIndex(s => s.name === studentName) + 1;
+  document.getElementById("studentRank").textContent = position || "N/A";
+}
+
+async function renderYearActivity(quizzesSnap) {
+  const activityGrid = document.getElementById("activityYearGrid");
+  activityGrid.innerHTML = '';
+
+  const today = new Date();
+  const startDate = new Date(today); startDate.setFullYear(startDate.getFullYear()-1);
+
+  const dayCountMap = {};
+
+  for (const quizDoc of quizzesSnap.docs) {
+    const reviewSnap = await getDoc(doc(db, `review_${quizDoc.id}`, studentName));
+    if (reviewSnap.exists()) {
+      const submittedAt = reviewSnap.data().submittedAt?.seconds
+        ? new Date(reviewSnap.data().submittedAt.seconds*1000)
+        : new Date();
+      const dateKey = submittedAt.toISOString().split('T')[0];
+      if (!dayCountMap[dateKey]) dayCountMap[dateKey] = 0;
+      dayCountMap[dateKey]++;
+    }
+  }
+
+  const maxCount = Math.max(...Object.values(dayCountMap), 1);
+  const date = new Date(startDate);
+
+  while(date <= today){
+    const dateKey = date.toISOString().split('T')[0];
+    const count = dayCountMap[dateKey] || 0;
+    let level = 0;
+    if(count>0) level = Math.ceil((count/maxCount)*5);
+
+    const div = document.createElement('div');
+    div.className = 'activity-square-year';
+    div.dataset.count = level;
+    div.title = `${dateKey}: ${count} quiz${count!==1?'zes':''} completed`;
+    activityGrid.appendChild(div);
+
+    date.setDate(date.getDate()+1);
+  }
+}
+
+loadStudentStats();
+window.addEventListener('focus', loadStudentStats);
 </script>
 </body>
 </html>

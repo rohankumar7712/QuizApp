@@ -1,241 +1,250 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Quiz Review</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <style>
-      body {
-        padding: 1rem;
-        background-color: #f8f9fa;
-        font-family: "Segoe UI", Tahoma, sans-serif;
-        font-size: 14px;
-      }
-      .question-box {
-        background: #fff;
-        border-radius: 6px;
-        padding: 10px 12px;
-        margin-bottom: 10px;
-        box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
-        page-break-inside: avoid;
-      }
-      .question-box p {
-        margin: 2px 0;
-      }
-      .question-box p {
-        white-space: pre-wrap; /* preserve line breaks */
-        font-family: "Segoe UI", Tahoma, sans-serif; /* normal font for non-code */
-        margin: 4px 0;
-        font-size: 15px;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <title>Quiz Review</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      padding: 1rem;
+      background-color: #f8f9fa;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      font-size: 14px;
+    }
 
-      .question-box pre {
-        white-space: pre-wrap;
-        font-family: Consolas, "Courier New", monospace; /* code font */
-        background-color: #f1f1f1;
-        padding: 8px;
-        border-radius: 4px;
-        overflow-x: auto;
-        margin: 4px 0;
-        font-size: 14px;
-      }
+    .summary-card {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .summary-card .card {
+      flex: 1;
+      border-radius: 12px;
+      text-align: center;
+      background: linear-gradient(145deg,#ffffff,#f2f5ff);
+      padding: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .summary-card .card h5 { margin: 0; font-weight: 600; }
+    .summary-card .card p { font-size: 1.3rem; font-weight: bold; margin: 5px 0 0; }
 
-      .correct {
-        color: green;
-        font-weight: 500;
-      }
-      .wrong {
-        color: red;
-        font-weight: 500;
-      }
-      .no-print {
-        display: flex;
-        gap: 10px;
-        margin-top: 20px;
-      }
-      @media print {
-        .no-print {
-          display: none !important;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container" id="reviewContent">
-      <h4 id="quizTitle" class="fw-bold mb-2">Quiz Review</h4>
-      <div id="studentName" class="mb-1 text-dark"></div>
-      <div id="scoreInfo" class="mb-3 text-primary"></div>
-      <div id="reviewContainer"></div>
+    .question-card {
+      background: linear-gradient(145deg,#ffffff,#f2f5ff);
+      border-radius: 16px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      position: relative;
+      border-left: 6px solid #ddd;
+    }
 
-      <div class="no-print">
-        <a href="history.html" class="btn btn-secondary">Back</a>
-        <button id="downloadPdf" class="btn btn-success">
-          Download as PDF
-        </button>
+    .question-card.correct { border-left-color: #28a745; }
+    .question-card.wrong { border-left-color: #dc3545; }
+
+    .options div {
+      margin-left: 15px;
+      margin-bottom: 3px;
+      padding-left: 4px;
+      border-left: 3px solid transparent;
+    }
+
+    .options div.selected { font-weight: 600; }
+    .options div.correct { border-left-color: #28a745; }
+    .options div.wrong { border-left-color: #dc3545; }
+
+    .question-card p { margin: 4px 0; font-size: 15px; white-space: pre-wrap; }
+    .question-card pre {
+      white-space: pre-wrap;
+      font-family: Consolas, "Courier New", monospace;
+      background-color: #f1f1f1;
+      padding: 8px;
+      border-radius: 4px;
+      overflow-x: auto;
+      margin: 4px 0;
+      font-size: 14px;
+    }
+
+    .no-print {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    @media print { .no-print { display: none !important; } }
+  </style>
+</head>
+<body>
+  <div class="container" id="reviewContent">
+    <h4 id="quizTitle" class="fw-bold mb-2">Quiz Review</h4>
+    <div id="studentName" class="mb-1 text-dark"></div>
+    <div id="scoreInfo" class="mb-3 text-primary"></div>
+
+    <!-- Summary Cards -->
+    <div class="summary-card" id="summaryCards">
+      <div class="card">
+        <h5>Total Questions</h5>
+        <p id="totalQuestions">0</p>
+      </div>
+      <div class="card">
+        <h5>Correct</h5>
+        <p id="correctAnswers">0</p>
+      </div>
+      <div class="card">
+        <h5>Wrong</h5>
+        <p id="wrongAnswers">0</p>
       </div>
     </div>
 
-    <!-- Firebase & Firestore -->
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-      import {
-        getFirestore,
-        doc,
-        getDoc,
-      } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    <div id="reviewContainer"></div>
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyC_lvF65P7vaKYnKEMrpHfJroMe-vh3w4U",
-        authDomain: "quizapp-f370d.firebaseapp.com",
-        projectId: "quizapp-f370d",
-        storageBucket: "quizapp-f370d.appspot.com",
-        messagingSenderId: "822956185807",
-        appId: "1:822956185807:web:3d2244d53f9bb61ec33fba",
+    <div class="no-print">
+      <a href="history.html" class="btn btn-secondary">Back</a>
+      <button id="downloadPdf" class="btn btn-success">Download as PDF</button>
+    </div>
+  </div>
+
+  <!-- Firebase & Firestore -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC_lvF65P7vaKYnKEMrpHfJroMe-vh3w4U",
+      authDomain: "quizapp-f370d.firebaseapp.com",
+      projectId: "quizapp-f370d",
+      storageBucket: "quizapp-f370d.appspot.com",
+      messagingSenderId: "822956185807",
+      appId: "1:822956185807:web:3d2244d53f9bb61ec33fba"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    const studentName = params.get("student");
+    document.getElementById("studentName").textContent = "Student: " + studentName;
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return str.replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+    }
+
+    async function loadQuizName() {
+      const quizDocRef = doc(db, "quizzes", code);
+      const quizSnap = await getDoc(quizDocRef);
+      if (quizSnap.exists()) {
+        document.getElementById("quizTitle").textContent = `Quiz Review – ${quizSnap.data().title}`;
+      }
+    }
+
+    async function loadReview() {
+      try {
+        const reviewDocRef = doc(db, `review_${code}`, studentName);
+        const docSnap = await getDoc(reviewDocRef);
+
+        if (!docSnap.exists()) {
+          document.getElementById("reviewContainer").innerHTML = "<p class='text-danger'>No review data found.</p>";
+          return;
+        }
+
+        const quizSnap = await getDoc(doc(db, "quizzes", code));
+        let totalQuestions = quizSnap.exists() ? (quizSnap.data().totalQuestions || 0) : 0;
+
+        const data = docSnap.data();
+        document.getElementById("scoreInfo").textContent =
+          `Score: ${data.score} | Submitted: ${new Date(data.submittedAt.seconds * 1000).toLocaleString()}`;
+
+        const container = document.getElementById("reviewContainer");
+        container.innerHTML = "";
+
+        let correctCount = 0;
+        let wrongCount = 0;
+
+        const filteredAnswers = totalQuestions > 0 ? data.answers.slice(0, totalQuestions) : data.answers;
+
+        filteredAnswers.forEach((entry, index) => {
+          if(entry.selected === entry.correct) correctCount++;
+          else wrongCount++;
+
+          const div = document.createElement("div");
+          div.className = "question-card";
+          div.classList.add(entry.selected === entry.correct ? "correct" : "wrong");
+
+          const opts = entry.options || {};
+          const keys = ['a','b','c','d'];
+          let optionsHtml = '';
+          keys.forEach((key,i) => {
+            let opt = Array.isArray(opts) ? opts[i] : opts[key];
+            if(opt){
+              opt = opt.replace(/^[a-dA-D]\.\s*/,'');
+              let classes = '';
+              if(entry.selected === key) classes += ' selected';
+              if(key === entry.correct) classes += ' correct';
+              if(entry.selected === key && entry.selected !== entry.correct) classes += ' wrong';
+              optionsHtml += `<div class="${classes}">${key}. ${escapeHtml(opt)}</div>`;
+            }
+          });
+
+          const questionText = entry.question.replace(/^Q\d+\.\s*/,'');
+          const isCode = /[;{}()=]/.test(questionText);
+          const questionHtml = isCode ? `<pre>${escapeHtml(questionText)}</pre>` : `<p>${escapeHtml(questionText)}</p>`;
+
+          div.innerHTML = `
+            <strong>Q${index+1}.</strong> ${questionHtml}
+            <div class="options ms-3 mb-1">${optionsHtml}</div>
+          `;
+          container.appendChild(div);
+        });
+
+        // Update summary
+        document.getElementById("totalQuestions").textContent = filteredAnswers.length;
+        document.getElementById("correctAnswers").textContent = correctCount;
+        document.getElementById("wrongAnswers").textContent = wrongCount;
+
+        document.getElementById("downloadPdf").addEventListener("click", () => {
+          downloadPDF(studentName, code);
+        });
+
+      } catch (error) {
+        console.error("Error loading review:", error);
+        document.getElementById("reviewContainer").innerHTML = "<p class='text-danger'>Failed to load review.</p>";
+      }
+    }
+
+    loadQuizName();
+    loadReview();
+  </script>
+
+  <!-- html2pdf.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    function downloadPDF(studentName, code) {
+      const buttons = document.querySelector(".no-print");
+      buttons.style.display = "none";
+
+      const element = document.getElementById("reviewContent");
+      const filename = `${studentName}_${code}.pdf`;
+
+      const opt = {
+        margin: 0.2,
+        filename: filename,
+        image: { type: "jpeg", quality: 1 },
+        html2canvas: { scale: 3.5, useCORS: true, scrollY: 0 },
+        jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
       };
 
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
-
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get("code");
-      const studentName = params.get("student");
-
-      document.getElementById("studentName").textContent =
-        "Student: " + studentName;
-
-      // helper: escape HTML tags so <h1>, <title> show as text
-      function escapeHtml(str) {
-        if (!str) return "";
-        return str
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&#039;");
-      }
-
-      // Load Quiz Name
-      async function loadQuizName() {
-        const quizDocRef = doc(db, "quizzes", code);
-        const quizSnap = await getDoc(quizDocRef);
-        if (quizSnap.exists()) {
-          const quizData = quizSnap.data();
-          document.getElementById(
-            "quizTitle"
-          ).textContent = `Quiz Review – ${quizData.title}`;
-        }
-      }
-
-      // Load Review
-      async function loadReview() {
-  try {
-    const reviewDocRef = doc(db, `review_${code}`, studentName);
-    const docSnap = await getDoc(reviewDocRef);
-
-    if (!docSnap.exists()) {
-      document.getElementById("reviewContainer").innerHTML = "<p class='text-danger'>No review data found.</p>";
-      return;
+      html2pdf().set(opt).from(element).save().then(() => { buttons.style.display = "flex"; });
     }
-
-    const quizSnap = await getDoc(doc(db, "quizzes", code));
-    let totalQuestions = 0;
-    if (quizSnap.exists()) {
-      const quizData = quizSnap.data();
-      totalQuestions = quizData.totalQuestions || 0;
-    }
-
-    const data = docSnap.data();
-    document.getElementById("scoreInfo").textContent =
-      `Score: ${data.score} | Submitted: ${new Date(data.submittedAt.seconds * 1000).toLocaleString()}`;
-
-    const container = document.getElementById("reviewContainer");
-    container.innerHTML = "";
-
-    // ✅ Only take the first "totalQuestions" from the review data
-    const filteredAnswers = totalQuestions > 0 ? data.answers.slice(0, totalQuestions) : data.answers;
-
-    filteredAnswers.forEach((entry, index) => {
-      const div = document.createElement("div");
-      div.className = "question-box";
-
-      const opts = entry.options || {};
-      const keys = ['a', 'b', 'c', 'd'];
-      let optionsHtml = '';
-      keys.forEach((key, i) => {
-        let optionText = Array.isArray(opts) ? opts[i] : opts[key];
-        if (optionText) {
-          optionText = optionText.replace(/^[a-dA-D]\.\s*/, '');
-          optionsHtml += `<div>${key}. ${escapeHtml(optionText)}</div>`;
-        }
-      });
-
-      const correctIcon = entry.selected === entry.correct ? '✅' : '❌';
-      const answerClass = entry.selected === entry.correct ? 'correct' : 'wrong';
-
-      const selectedText = entry.selected ? escapeHtml(entry.selected) : "Not answered";
-      const correctText = entry.correct ? escapeHtml(entry.correct) : "";
-
-      const questionText = entry.question.replace(/^Q\d+\.\s*/, '');
-      const isCode = /[;{}()=]/.test(questionText);
-      const questionHtml = isCode
-        ? `<pre>${escapeHtml(questionText)}</pre>`
-        : `<p>${escapeHtml(questionText)}</p>`;
-
-      div.innerHTML = `
-        <strong>Q${index + 1}.</strong> ${questionHtml}
-        <div class="ms-3 mb-1">${optionsHtml}</div>
-        <p class="ms-3 ${answerClass}" style="margin: 2px 0;"><strong>Your Answer:</strong> ${selectedText} ${correctIcon}</p>
-        <p class="ms-3" style="margin: 2px 0;"><strong>Correct Answer:</strong> ${correctText}</p>
-      `;
-      container.appendChild(div);
-    });
-
-    document.getElementById("downloadPdf").addEventListener("click", () => {
-      downloadPDF(studentName, code);
-    });
-
-  } catch (error) {
-    console.error("Error loading review:", error);
-    document.getElementById("reviewContainer").innerHTML = "<p class='text-danger'>Failed to load review.</p>";
-  }
-}
-
-
-      loadQuizName();
-      loadReview();
-    </script>
-
-    <!-- html2pdf.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script>
-      function downloadPDF(studentName, code) {
-        const buttons = document.querySelector(".no-print");
-        buttons.style.display = "none";
-
-        const element = document.getElementById("reviewContent");
-        const filename = `${studentName}_${code}.pdf`;
-
-        const opt = {
-          margin: 0.2,
-          filename: filename,
-          image: { type: "jpeg", quality: 1 },
-          html2canvas: { scale: 3.5, useCORS: true, scrollY: 0 },
-          jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
-          pagebreak: { mode: ["avoid-all", "css", "legacy"] },
-        };
-
-        html2pdf()
-          .set(opt)
-          .from(element)
-          .save()
-          .then(() => {
-            buttons.style.display = "flex";
-          });
-      }
-    </script>
-  </body>
+  </script>
+</body>
 </html>
