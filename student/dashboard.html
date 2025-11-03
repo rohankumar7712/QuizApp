@@ -159,8 +159,18 @@ const studentName = localStorage.getItem("studentName");
 if (!studentName) { alert("Not logged in"); window.location = "../index.html"; }
 document.getElementById("studentName").textContent = studentName;
 
-function toggleSidebar() { document.getElementById("sidebar").classList.toggle("show"); }
-function logout() { localStorage.removeItem("studentId"); localStorage.removeItem("studentName"); window.location = "../index.html"; }
+function toggleSidebar() { 
+  document.getElementById("sidebar").classList.toggle("show"); 
+}
+window.toggleSidebar = toggleSidebar;  // makes it accessible from HTML
+
+function logout() { 
+  localStorage.removeItem("studentId"); 
+  localStorage.removeItem("studentName"); 
+  window.location = "../index.html"; 
+}
+window.logout = logout;  // makes it accessible from HTML
+
 
 let rankMode = 'marks'; // default
 
@@ -255,6 +265,7 @@ async function renderYearActivity(quizzesSnap) {
     date.setDate(date.getDate()+1);
   }
 }
+
 
 loadStudentStats();
 window.addEventListener('focus', loadStudentStats);
