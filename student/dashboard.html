@@ -35,34 +35,20 @@ body {
 .sidebar a.logout-link:hover { background-color: #c0392b; color: white !important; }
 .toggle-btn { display: none; font-size: 1.2rem; }
 
-/* Stats Cards */
-.stats-card {
+/* Scoreboard */
+.scoreboard-card {
   border-radius: 16px;
   background: linear-gradient(145deg, #ffffff, #f2f5ff);
-  text-align: center;
-  padding: 20px;
+  padding: 25px;
   box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  transition: transform 0.3s;
 }
-.stats-card:hover { transform: translateY(-5px); }
-.stats-card h5 { font-weight: 600; margin-bottom: 10px; }
-.stats-card p { font-size: 1.5rem; font-weight: bold; margin: 0; }
+.scoreboard-card h4 { font-weight: 700; margin-bottom: 20px; }
+.table th { background-color: #6f42c1; color: white; }
+.table tr:hover { background-color: #f1ebff; }
 
-/* Rank Toggle */
-.rank-toggle { display: flex; gap: 10px; margin: 10px 0; }
-.rank-toggle button { flex: 1; font-weight: 500; }
-
-/* Activity Heatmap */
-.activity-square-year {
-  width: 12px; height: 12px; border-radius: 3px; margin: 1px;
-  background-color: #e0e0e0;
-  cursor: default; transition: background-color 0.3s;
-}
-.activity-square-year[data-count="1"] { background-color: #a8d5a2; }
-.activity-square-year[data-count="2"] { background-color: #6cc070; }
-.activity-square-year[data-count="3"] { background-color: #28a745; }
-.activity-square-year[data-count="4"] { background-color: #1e7e34; }
-.activity-square-year[data-count="5"] { background-color: #145a22; }
+/* Status Badges */
+.status-pass { color: #28a745; font-weight: bold; }
+.status-fail { color: #dc3545; font-weight: bold; }
 
 /* Responsive */
 @media (max-width: 768px) {
@@ -89,50 +75,27 @@ body {
 
     <!-- Main Content -->
     <div class="col-md-9 p-4">
-      <h3 class="mb-3">Welcome, <span id="studentName">Student</span>!</h3>
+      <h3 class="mb-4">Welcome, <span id="studentName">Student</span>!</h3>
 
-      <!-- Student Stats Section -->
-      <div class="row g-4" id="statsSection">
-        <div class="col-md-3">
-          <div class="stats-card">
-            <h5>Total Quizzes</h5>
-            <p id="totalQuizzes">0</p>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="stats-card">
-            <h5>Quizzes Completed</h5>
-            <p id="completedQuizzes">0</p>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="stats-card">
-            <h5>Average Score</h5>
-            <p id="averageScore">0%</p>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="stats-card">
-            <h5>Current Position</h5>
-            <p id="studentRank">N/A</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Rank Toggle -->
-      <div class="rank-toggle">
-        <button class="btn btn-outline-primary" id="btnByMarks">By Marks</button>
-        <button class="btn btn-outline-secondary" id="btnByQuizzes">By Quizzes Completed</button>
-      </div>
-
-      <!-- Activity Heatmap -->
-      <div class="row g-4 mt-4">
-        <div class="col-12">
-          <div class="stats-card">
-            <h5>Activity Overview (Last 12 Months)</h5>
-            <div id="activityYearGrid" style="display:flex; flex-wrap: wrap;"></div>
-            <p class="mt-2 text-muted" style="font-size:0.85rem;">Darker green = more quizzes completed that day, gray = no activity</p>
-          </div>
+      <!-- Scoreboard -->
+      <div class="scoreboard-card">
+        <h4>📋 Quiz Scoreboard</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped align-middle">
+            <thead>
+              <tr>
+                <th>Quiz Name</th>
+                <th>Total Marks</th>
+                <th>Gained Marks</th>
+                <th>Status</th>
+                <th>Rank</th>
+                <th>Submitted On</th>
+              </tr>
+            </thead>
+            <tbody id="scoreboardBody">
+              <tr><td colspan="6" class="text-center text-muted">Loading quizzes...</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -159,116 +122,93 @@ const studentName = localStorage.getItem("studentName");
 if (!studentName) { alert("Not logged in"); window.location = "../index.html"; }
 document.getElementById("studentName").textContent = studentName;
 
-function toggleSidebar() { 
-  document.getElementById("sidebar").classList.toggle("show"); 
-}
-window.toggleSidebar = toggleSidebar;  // makes it accessible from HTML
+function toggleSidebar() { document.getElementById("sidebar").classList.toggle("show"); }
+window.toggleSidebar = toggleSidebar;
 
-function logout() { 
-  localStorage.removeItem("studentId"); 
-  localStorage.removeItem("studentName"); 
-  window.location = "../index.html"; 
-}
-window.logout = logout;  // makes it accessible from HTML
+function logout() { localStorage.clear(); window.location.href = "../index.html"; }
+window.logout = logout;
 
-
-let rankMode = 'marks'; // default
-
-document.getElementById("btnByMarks").addEventListener("click", () => { rankMode = 'marks'; computeRank(); });
-document.getElementById("btnByQuizzes").addEventListener("click", () => { rankMode = 'quizzes'; computeRank(); });
-
-async function loadStudentStats() {
+// ✅ Load only attempted quizzes sorted by submission time
+async function loadScoreboard() {
   const quizzesSnap = await getDocs(collection(db, "quizzes"));
-  const totalQuizzes = quizzesSnap.size;
-  document.getElementById("totalQuizzes").textContent = totalQuizzes;
-
-  let completed = 0, totalScore = 0;
-  for (const quizDoc of quizzesSnap.docs) {
-    const code = quizDoc.id;
-    const reviewSnap = await getDoc(doc(db, `review_${code}`, studentName));
-    if (reviewSnap.exists()) {
-      completed++;
-      totalScore += reviewSnap.data().score || 0;
-    }
-  }
-
-  document.getElementById("completedQuizzes").textContent = completed;
-  document.getElementById("averageScore").textContent = completed ? Math.round(totalScore / completed) + "%" : "0%";
-
-  renderYearActivity(quizzesSnap);
-  computeRank();
-}
-
-async function computeRank() {
   const studentsSnap = await getDocs(collection(db, "students"));
-  const studentScores = [];
+  const tbody = document.getElementById("scoreboardBody");
+  tbody.innerHTML = "";
 
-  for (const studentDoc of studentsSnap.docs) {
-    const sName = studentDoc.data().name;
-    let totalScore = 0, completed = 0;
+  const attempted = [];
 
-    const quizzesSnap = await getDocs(collection(db, "quizzes"));
-    for (const quizDoc of quizzesSnap.docs) {
-      const reviewSnap = await getDoc(doc(db, `review_${quizDoc.id}`, sName));
-      if (reviewSnap.exists()) {
-        completed++;
-        totalScore += reviewSnap.data().score || 0;
+  for (const quizDoc of quizzesSnap.docs) {
+    const quizData = quizDoc.data();
+    const quizId = quizDoc.id;
+    const quizName = quizData.title || quizId;
+
+    const reviewSnap = await getDoc(doc(db, `review_${quizId}`, studentName));
+    if (!reviewSnap.exists()) continue; // only attempted quizzes
+
+    const review = reviewSnap.data();
+    const submittedDate = review.submittedAt?.toDate?.();
+    const submittedAtStr = submittedDate ? submittedDate.toLocaleString() : "N/A";
+    const submittedSeconds = review.submittedAt?.seconds || 0;
+
+    const totalQuestions = quizData.questions ? quizData.questions.length : 0;
+    const totalMarks = totalQuestions;
+    const gainedMarks = review.score || 0;
+    const percentage = totalMarks > 0 ? (gainedMarks / totalMarks) * 100 : 0;
+    const status = percentage >= 40
+      ? `<span class="status-pass">Pass ✅</span>`
+      : `<span class="status-fail">Fail ❌</span>`;
+
+    // Collect all student performances for ranking
+    const studentResults = [];
+    for (const studentDoc of studentsSnap.docs) {
+      const sName = studentDoc.data().name;
+      const sReviewSnap = await getDoc(doc(db, `review_${quizId}`, sName));
+      if (sReviewSnap.exists()) {
+        const sData = sReviewSnap.data();
+        studentResults.push({
+          name: sName,
+          score: sData.score || 0,
+          time: sData.submittedAt?.seconds || 9999999999
+        });
       }
     }
-    studentScores.push({ name: sName, totalScore, completed });
+
+    studentResults.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.time - b.time;
+    });
+
+    const rankIndex = studentResults.findIndex(s => s.name === studentName);
+    const rank = rankIndex >= 0 ? rankIndex + 1 : "N/A";
+
+    attempted.push({ quizName, totalMarks, gainedMarks, status, rank, submittedAtStr, submittedSeconds });
   }
 
-  // Sort based on current mode
-  if (rankMode === 'marks') studentScores.sort((a,b) => b.totalScore - a.totalScore);
-  else studentScores.sort((a,b) => b.completed - a.completed);
+  // ✅ Sort by actual submission time
+  attempted.sort((a, b) => a.submittedSeconds - b.submittedSeconds);
 
-  const position = studentScores.findIndex(s => s.name === studentName) + 1;
-  document.getElementById("studentRank").textContent = position || "N/A";
+  if (attempted.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">You have not attempted any quizzes yet.</td></tr>`;
+    return;
+  }
+
+  attempted.forEach(q => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${q.quizName}</td>
+      <td>${q.totalMarks}</td>
+      <td>${q.gainedMarks}</td>
+      <td>${q.status}</td>
+      <td>${q.rank}</td>
+      <td><small class="text-muted">${q.submittedAtStr}</small></td>
+    `;
+    tbody.appendChild(row);
+  });
 }
 
-async function renderYearActivity(quizzesSnap) {
-  const activityGrid = document.getElementById("activityYearGrid");
-  activityGrid.innerHTML = '';
-
-  const today = new Date();
-  const startDate = new Date(today); startDate.setFullYear(startDate.getFullYear()-1);
-
-  const dayCountMap = {};
-
-  for (const quizDoc of quizzesSnap.docs) {
-    const reviewSnap = await getDoc(doc(db, `review_${quizDoc.id}`, studentName));
-    if (reviewSnap.exists()) {
-      const submittedAt = reviewSnap.data().submittedAt?.seconds
-        ? new Date(reviewSnap.data().submittedAt.seconds*1000)
-        : new Date();
-      const dateKey = submittedAt.toISOString().split('T')[0];
-      if (!dayCountMap[dateKey]) dayCountMap[dateKey] = 0;
-      dayCountMap[dateKey]++;
-    }
-  }
-
-  const maxCount = Math.max(...Object.values(dayCountMap), 1);
-  const date = new Date(startDate);
-
-  while(date <= today){
-    const dateKey = date.toISOString().split('T')[0];
-    const count = dayCountMap[dateKey] || 0;
-    let level = 0;
-    if(count>0) level = Math.ceil((count/maxCount)*5);
-
-    const div = document.createElement('div');
-    div.className = 'activity-square-year';
-    div.dataset.count = level;
-    div.title = `${dateKey}: ${count} quiz${count!==1?'zes':''} completed`;
-    activityGrid.appendChild(div);
-
-    date.setDate(date.getDate()+1);
-  }
-}
-
-
-loadStudentStats();
-window.addEventListener('focus', loadStudentStats);
+loadScoreboard();
+window.addEventListener("focus", loadScoreboard);
 </script>
+
 </body>
 </html>

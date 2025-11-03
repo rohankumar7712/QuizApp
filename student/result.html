@@ -139,8 +139,7 @@
     }
 
     async function loadQuizName() {
-      const quizDocRef = doc(db, "quizzes", code);
-      const quizSnap = await getDoc(quizDocRef);
+      const quizSnap = await getDoc(doc(db, "quizzes", code));
       if (quizSnap.exists()) {
         document.getElementById("quizTitle").textContent = `Quiz Review – ${quizSnap.data().title}`;
       }
@@ -148,20 +147,16 @@
 
     async function loadReview() {
       try {
-        const reviewDocRef = doc(db, `review_${code}`, studentName);
-        const docSnap = await getDoc(reviewDocRef);
-
+        const docSnap = await getDoc(doc(db, `review_${code}`, studentName));
         if (!docSnap.exists()) {
           document.getElementById("reviewContainer").innerHTML = "<p class='text-danger'>No review data found.</p>";
           return;
         }
 
         const quizSnap = await getDoc(doc(db, "quizzes", code));
-        let totalQuestions = quizSnap.exists() ? (quizSnap.data().totalQuestions || 0) : 0;
+        const totalQuestions = quizSnap.exists() ? (quizSnap.data().totalQuestions || 0) : 0;
 
         const data = docSnap.data();
-        document.getElementById("scoreInfo").textContent =
-          `Score: ${data.score} | Submitted: ${new Date(data.submittedAt.seconds * 1000).toLocaleString()}`;
 
         const container = document.getElementById("reviewContainer");
         container.innerHTML = "";
@@ -176,8 +171,7 @@
           else wrongCount++;
 
           const div = document.createElement("div");
-          div.className = "question-card";
-          div.classList.add(entry.selected === entry.correct ? "correct" : "wrong");
+          div.className = "question-card " + (entry.selected === entry.correct ? "correct" : "wrong");
 
           const opts = entry.options || {};
           const keys = ['a','b','c','d'];
@@ -194,14 +188,12 @@
             }
           });
 
-          const questionText = entry.question.replace(/^Q\d+\.\s*/,'');
+          const questionText = entry.question.replace(/^Q\d+\.\s*/, '');
           const isCode = /[;{}()=]/.test(questionText);
           const questionHtml = isCode ? `<pre>${escapeHtml(questionText)}</pre>` : `<p>${escapeHtml(questionText)}</p>`;
 
-          div.innerHTML = `
-            <strong>Q${index+1}.</strong> ${questionHtml}
-            <div class="options ms-3 mb-1">${optionsHtml}</div>
-          `;
+          div.innerHTML = `<strong>Q${index+1}.</strong> ${questionHtml}
+                           <div class="options ms-3 mb-1">${optionsHtml}</div>`;
           container.appendChild(div);
         });
 
@@ -210,8 +202,12 @@
         document.getElementById("correctAnswers").textContent = correctCount;
         document.getElementById("wrongAnswers").textContent = wrongCount;
 
+        // Show dynamic score at top
+        document.getElementById("scoreInfo").textContent =
+          `Score: ${correctCount}/${filteredAnswers.length} | Submitted: ${new Date(data.submittedAt.seconds * 1000).toLocaleString()}`;
+
         document.getElementById("downloadPdf").addEventListener("click", () => {
-          downloadPDF(studentName, code);
+          downloadPDF(studentName, code, correctCount, filteredAnswers.length);
         });
 
       } catch (error) {
@@ -222,14 +218,19 @@
 
     loadQuizName();
     loadReview();
+
   </script>
 
   <!-- html2pdf.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
-    function downloadPDF(studentName, code) {
+    function downloadPDF(studentName, code, correctCount, totalQuestions) {
       const buttons = document.querySelector(".no-print");
       buttons.style.display = "none";
+
+      const scoreInfoElem = document.getElementById("scoreInfo");
+      const originalScoreText = scoreInfoElem.textContent;
+      scoreInfoElem.textContent = `Score: ${correctCount}/${totalQuestions} | ${originalScoreText.replace(/^Score:.*?\| /,'')}`;
 
       const element = document.getElementById("reviewContent");
       const filename = `${studentName}_${code}.pdf`;
@@ -243,7 +244,10 @@
         pagebreak: { mode: ["avoid-all", "css", "legacy"] },
       };
 
-      html2pdf().set(opt).from(element).save().then(() => { buttons.style.display = "flex"; });
+      html2pdf().set(opt).from(element).save().then(() => {
+        scoreInfoElem.textContent = originalScoreText;
+        buttons.style.display = "flex";
+      });
     }
   </script>
 </body>
