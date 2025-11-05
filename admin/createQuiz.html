@@ -160,7 +160,16 @@ a) Option A
 b) Option B
 c) Option C
 d) Option D
-Answer: a"></textarea>
+Answer: a
+
+પ્રશ્ન 1:
+a) અમદાવાદ
+b) વડોદરા
+c) સુરત
+d) રાજકોટ
+જવાબ: c "
+
+></textarea>
         <button class="btn btn-secondary" id="parseTextBtn"><i class="bi bi-file-earmark-text"></i> Parse Text</button>
         <p id="saveMsg" class="mt-2 text-success text-center"></p>
       </div>
@@ -240,30 +249,66 @@ function renderQuestions() {
 }
 
 // ===== Parse Text Input =====
-parseBtn.addEventListener("click", ()=>{
+// ===== Parse Text Input =====
+parseBtn.addEventListener("click", () => {
   const inputText = textInput.value.trim();
-  const blocks = inputText.split(/\n(?=Question\s*\d*\s*:)/).map(b=>b.trim()).filter(b=>b);
+  // Support both English "Question" and Gujarati "પ્રશ્ન"
+  const blocks = inputText
+    .split(/\n(?=(Question|પ્રશ્ન)\s*\d*\s*:)/)
+    .map(b => b.trim())
+    .filter(b => b);
+
   parsedQuestions = [];
-  blocks.forEach(block=>{
-    const lines = block.split("\n").map(l=>l.trim()).filter(l=>l);
-    if(lines.length===0) return;
-    const qIndex = lines.findIndex(l=>/^Question\s*\d*\s*:/.test(l));
-    if(qIndex===-1) return;
-    let optionStart = lines.findIndex(l=>/^[abcd]\)/i.test(l));
-    if(optionStart===-1) optionStart=lines.findIndex(l=>/^Answer\s*:/i.test(l));
-    if(optionStart===-1) optionStart=lines.length;
-    const questionText = lines.slice(qIndex,optionStart).join("\n").replace(/^Question\s*\d*\s*:/,"").trim();
-    const a = (lines.find(l=>/^a\)/i.test(l))||"").replace(/^a\)\s*/i,"");
-    const b = (lines.find(l=>/^b\)/i.test(l))||"").replace(/^b\)\s*/i,"");
-    const c = (lines.find(l=>/^c\)/i.test(l))||"").replace(/^c\)\s*/i,"");
-    const d = (lines.find(l=>/^d\)/i.test(l))||"").replace(/^d\)\s*/i,"");
-    const ansLine = lines.find(l=>/^Answer\s*:/i.test(l));
-    const answer = ansLine ? ansLine.replace(/^Answer\s*:/i,"").trim().toLowerCase():"a";
-    parsedQuestions.push({question:questionText,a,b,c,d,correct:["a","b","c","d"].includes(answer)?answer:"a",timeLimit:20});
+
+  blocks.forEach(block => {
+    const lines = block.split("\n").map(l => l.trim()).filter(l => l);
+    if (lines.length === 0) return;
+
+    // Match either "Question:" or "પ્રશ્ન:"
+    const qIndex = lines.findIndex(l => /^(Question|પ્રશ્ન)\s*\d*\s*:/.test(l));
+    if (qIndex === -1) return;
+
+    let optionStart = lines.findIndex(l => /^[abcd]\)/i.test(l));
+    if (optionStart === -1) optionStart = lines.findIndex(l => /^(Answer|જવાબ)\s*:/i.test(l));
+    if (optionStart === -1) optionStart = lines.length;
+
+    // Extract question text
+    const questionText = lines
+      .slice(qIndex, optionStart)
+      .join("\n")
+      .replace(/^(Question|પ્રશ્ન)\s*\d*\s*:/, "")
+      .trim();
+
+    const a = (lines.find(l => /^a\)/i.test(l)) || "").replace(/^a\)\s*/i, "");
+    const b = (lines.find(l => /^b\)/i.test(l)) || "").replace(/^b\)\s*/i, "");
+    const c = (lines.find(l => /^c\)/i.test(l)) || "").replace(/^c\)\s*/i, "");
+    const d = (lines.find(l => /^d\)/i.test(l)) || "").replace(/^d\)\s*/i, "");
+
+    // Match either "Answer:" or "જવાબ:"
+    const ansLine = lines.find(l => /^(Answer|જવાબ)\s*:/i.test(l));
+    const answer = ansLine
+      ? ansLine.replace(/^(Answer|જવાબ)\s*:/i, "").trim().toLowerCase()
+      : "a";
+
+    parsedQuestions.push({
+      question: questionText,
+      a,
+      b,
+      c,
+      d,
+      correct: ["a", "b", "c", "d"].includes(answer) ? answer : "a",
+      timeLimit: 20,
+    });
   });
-  if(parsedQuestions.length===0) alert("No valid questions found. Check format.");
-  else { renderQuestions(); alert(`${parsedQuestions.length} questions parsed successfully.`);}
+
+  if (parsedQuestions.length === 0)
+    alert("કોઈ માન્ય પ્રશ્ન મળ્યા નથી. ફોર્મેટ તપાસો.");
+  else {
+    renderQuestions();
+    alert(`${parsedQuestions.length} પ્રશ્નો સફળતાપૂર્વક ઉમેરાયા.`);
+  }
 });
+
 
 // ===== Generate Quiz Code =====
 function generateQuizCode(length=6){
